@@ -139,9 +139,10 @@ branch off `main`, open a PR, get a review, squash-merge.
 
 ## License
 
-All rights reserved. This code is public for visibility, research, and education — no
-license is granted to copy, modify, redistribute, or use it commercially without
-permission. Open an issue or reach out if you want to use any part of this.
+Licensed under the [PolyForm Noncommercial License 1.0.0](./LICENSE). You're free to
+use, modify, and share this for any noncommercial purpose — personal projects, research,
+education. Commercial use requires permission. Open an issue or reach out if you want to
+discuss that.
 
 ---
 

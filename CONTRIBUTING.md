@@ -1,9 +1,10 @@
 # Contributing to The System
 
-Thanks for your interest in the project. Note that the code is published under an
-all-rights-reserved license (see the README) — open an issue to discuss before starting
-work, so we can agree on scope and terms first. The workflow below keeps `main` clean
-without enforced branch protection.
+Thanks for your interest in the project. Note that the code is published under the
+[PolyForm Noncommercial License](./LICENSE) — noncommercial use, modification, and
+sharing is already permitted, but open an issue first if you're planning a nontrivial
+change so we can agree on scope before you invest the time. The workflow below keeps
+`main` clean without enforced branch protection.
 
 ## Golden rule
 
