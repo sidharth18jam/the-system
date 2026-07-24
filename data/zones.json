@@ -1,0 +1,11 @@
+[
+  { "id": "NW", "name": "North-West", "capacity": 11, "majority": 6,  "volatile": 5,  "adjacent": ["N", "W"] },
+  { "id": "N",  "name": "North",      "capacity": 9,  "majority": 5,  "volatile": 4,  "adjacent": ["NW", "NE", "C"] },
+  { "id": "NE", "name": "North-East", "capacity": 11, "majority": 6,  "volatile": 5,  "adjacent": ["N", "E"] },
+  { "id": "W",  "name": "West",       "capacity": 15, "majority": 8,  "volatile": 7,  "adjacent": ["NW", "SW"] },
+  { "id": "C",  "name": "Center",     "capacity": 9,  "majority": 5,  "volatile": 4,  "adjacent": ["N", "S"] },
+  { "id": "E",  "name": "East",       "capacity": 15, "majority": 8,  "volatile": 7,  "adjacent": ["NE", "SE"] },
+  { "id": "SW", "name": "South-West", "capacity": 17, "majority": 9,  "volatile": 8,  "adjacent": ["W", "S"] },
+  { "id": "S",  "name": "South",      "capacity": 11, "majority": 6,  "volatile": 5,  "adjacent": ["SW", "SE", "C"] },
+  { "id": "SE", "name": "South-East", "capacity": 21, "majority": 11, "volatile": 10, "adjacent": ["S", "E"] }
+]

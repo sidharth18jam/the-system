@@ -1,0 +1,14 @@
+[
+  { "primary": "mogul", "secondary": "boss",     "title": "The Company State",        "text": "The nation incorporates. Elections become shareholder meetings, and the police answer to the board. You win, and the ballot is quietly delisted." },
+  { "primary": "mogul", "secondary": "icon",  "title": "The Sponsored Republic",   "text": "Every institution now carries a logo. The constitution is a terms-of-service nobody read, and you own the platform it runs on." },
+  { "primary": "mogul", "secondary": "believer",     "title": "The Benevolent Monopoly",  "text": "You give the people everything they need — from a single supplier they cannot leave. Kindness, metered and billed monthly." },
+  { "primary": "boss",    "secondary": "mogul",   "title": "The Iron Ledger",          "text": "Order is enforced, and order is profitable. The convoys run on time because the alternative is bankruptcy, or worse." },
+  { "primary": "boss",    "secondary": "icon",  "title": "The Permanent Rally",      "text": "The crowd never goes home. Devotion is broadcast around the clock, and dissent simply fails to trend into existence." },
+  { "primary": "boss",    "secondary": "believer",     "title": "The Righteous Fist",       "text": "You rule for the people's own good, and the people who disagree are, by definition, enemies of the good. The cause forgives everything." },
+  { "primary": "icon", "secondary": "mogul",  "title": "The Attention Economy",    "text": "Truth is whatever holds the feed longest. Reality is a subscription, and you have raised the price of looking away." },
+  { "primary": "icon", "secondary": "boss",     "title": "The Spectacle Regime",     "text": "Governance is a season finale, forever. The enemies are cast, the villains recast, and the audience mistakes the applause for a vote." },
+  { "primary": "icon", "secondary": "believer",    "title": "The Cult of Sincerity",    "text": "You believe every word, and so do they. Doubt is a personal failing now, and the sermon never, ever ends." },
+  { "primary": "believer",   "secondary": "mogul",   "title": "The Charity Sovereign",    "text": "No one is poor; everyone is a beneficiary. You decide who deserves, and gratitude is the only currency that still trades freely." },
+  { "primary": "believer",   "secondary": "boss",      "title": "The Purified State",       "text": "The dream is achieved, and now it must be protected — from compromise, from difference, from anyone insufficiently pure of heart." },
+  { "primary": "believer",   "secondary": "icon",  "title": "The Feel-Good Autocracy",  "text": "Everyone is uplifted, hourly, whether they like it or not. Hope is compulsory, and the exits have been repainted as murals." }
+]

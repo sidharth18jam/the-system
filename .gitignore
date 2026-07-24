@@ -1,0 +1,42 @@
+# Personal / local-only — not for collaborators
+memory/
+CLAUDE.md
+.claude/settings.local.json
+.claude/*.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Runtime persistence snapshot (server/persistence.js)
+data/.rooms-state.json
+
+# Future build artifacts (Node-based web game)
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.cache/
+coverage/
+
+# Third-party reference material — not ours to redistribute
+reference/
+
+# Internal working notes and design history — kept local, not published
+DESIGN_DECISIONS.md
+BUILD_PHASES.md
+MODES_FIDELITY_PLAN.md
+PHASE_3_4_PLAN.md
+*Adaptation Guide.md

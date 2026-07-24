@@ -1,0 +1,72 @@
+[
+  {
+    "id": "obj_machine",
+    "title": "Machine Politics",
+    "text": "End the game holding three or more constituencies. The machine doesn't ask for votes — it collects them.",
+    "check": "majorities3plus",
+    "bonus": 3
+  },
+  {
+    "id": "obj_corridor",
+    "title": "The Corridor",
+    "text": "End the game holding two adjacent constituencies. Control the road and you control what travels on it.",
+    "check": "adjacentPair",
+    "bonus": 3
+  },
+  {
+    "id": "obj_center",
+    "title": "The Middle Path",
+    "text": "End the game holding the Center. Whoever sits in the capital writes the history.",
+    "check": "centerHeld",
+    "bonus": 3
+  },
+  {
+    "id": "obj_warchest",
+    "title": "War Chest",
+    "text": "End the game strictly richer than every rival. Campaigns end; accounts don't.",
+    "check": "richest",
+    "bonus": 3
+  },
+  {
+    "id": "obj_cleanhands",
+    "title": "Clean Hands",
+    "text": "Never take an IOU all game. Owe nobody, and nobody owns you.",
+    "check": "noIOUEver",
+    "bonus": 3
+  },
+  {
+    "id": "obj_deepstate",
+    "title": "The Deep State",
+    "text": "Play three or more conspiracies over the game. Elections are decided long before the counting.",
+    "check": "conspiracies3",
+    "bonus": 3
+  },
+  {
+    "id": "obj_trapper",
+    "title": "The Trapper",
+    "text": "Gerrymander rivals' voters into Volatile Areas twice. Let them explain the headlines.",
+    "check": "trapped2",
+    "bonus": 3
+  },
+  {
+    "id": "obj_bigprize",
+    "title": "The Big Prize",
+    "text": "End the game holding the South-East, the largest constituency on the map.",
+    "check": "bigZone",
+    "bonus": 3
+  },
+  {
+    "id": "obj_everywhere",
+    "title": "Everywhere at Once",
+    "text": "End the game with voters in six or more constituencies. A face on every wall.",
+    "check": "spread6",
+    "bonus": 3
+  },
+  {
+    "id": "obj_untouchable",
+    "title": "Untouchable",
+    "text": "End the game holding a constituency, having never lost a majority all game. They never laid a finger on you.",
+    "check": "untouchable",
+    "bonus": 3
+  }
+]

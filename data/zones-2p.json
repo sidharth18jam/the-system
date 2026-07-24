@@ -1,0 +1,9 @@
+[
+  { "id": "Z1", "name": "Uptown",        "capacity": 9,  "majority": 5, "volatile": 4, "adjacent": ["Z6", "Z2", "Z7"] },
+  { "id": "Z2", "name": "The Mills",     "capacity": 11, "majority": 6, "volatile": 5, "adjacent": ["Z1", "Z3", "Z7"] },
+  { "id": "Z3", "name": "Harbourside",   "capacity": 13, "majority": 7, "volatile": 6, "adjacent": ["Z2", "Z4", "Z7"] },
+  { "id": "Z4", "name": "Old Town",      "capacity": 9,  "majority": 5, "volatile": 4, "adjacent": ["Z3", "Z5", "Z7"] },
+  { "id": "Z5", "name": "The Sprawl",    "capacity": 11, "majority": 6, "volatile": 5, "adjacent": ["Z4", "Z6", "Z7"] },
+  { "id": "Z6", "name": "Garrison Hill", "capacity": 13, "majority": 7, "volatile": 6, "adjacent": ["Z5", "Z1", "Z7"] },
+  { "id": "Z7", "name": "The Ring",      "capacity": 15, "majority": 8, "volatile": 7, "adjacent": ["Z1", "Z2", "Z3", "Z4", "Z5", "Z6"] }
+]

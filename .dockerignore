@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log*
+.git
+.gitignore
+memory
+.claude
+data/.rooms-state.json
+*.md
+!README.md
+test
+.DS_Store

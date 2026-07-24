@@ -1,0 +1,780 @@
+/* The System — "indelible ink on ballot paper"
+   Structure & officialdom: indigo ink on paper stock.
+   Party noise: four screen-print spot colors.
+   Type: Archivo Black (poster) / Public Sans (bureau) / Courier Prime (voter roll). */
+
+:root {
+  --ink: #2a2456;
+  --ink-press: #1d1840; /* ink where it pools: hovers, banner fills */
+  --muted: #6e6884;
+  --paper: #f0ebdd;
+  --paper2: #e5dec9;
+  --line: #c9c2ab;
+
+  --green: #1e7a46;
+  --red: #c03a2b;
+  --blue: #1d5fa0;
+  --yellow: #dea815;
+  --purple: #6c3fa0;
+  --funds: #1e7a46;
+  --clout: #c03a2b;
+  --media: #1d5fa0;
+  --trust: #dea815;
+
+  --display: 'Archivo Black', 'Arial Black', sans-serif;
+  --body: 'Public Sans', system-ui, sans-serif;
+  --mono: 'Courier Prime', 'Courier New', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  min-height: 100vh;
+}
+.hidden { display: none !important; }
+.screen { min-height: 100vh; }
+
+button {
+  font-family: var(--body);
+  font-weight: 700;
+  padding: 10px 18px;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  cursor: pointer;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+button:hover { background: var(--paper2); }
+button.primary {
+  background: var(--ink);
+  color: var(--paper);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  width: 100%;
+  margin-top: 8px;
+}
+button.primary:hover { background: var(--ink-press); }
+:focus-visible { outline: 2px dashed var(--ink); outline-offset: 2px; }
+
+/* ---------- Home / Lobby ---------- */
+#screen-home, #screen-lobby {
+  display: flex; align-items: center; justify-content: center;
+}
+.home-box {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink);
+  padding: 40px 48px;
+  text-align: center;
+  width: 380px;
+}
+.home-box h1 {
+  font-family: var(--display);
+  font-size: 3.4rem;
+  line-height: 1;
+  letter-spacing: 2px;
+  color: var(--ink);
+  /* misregistered overprint: red and blue plates a hair off the ink plate */
+  text-shadow: 3px 2px 0 var(--red), -3px -2px 0 var(--blue);
+}
+.home-box h2 { font-family: var(--display); font-size: 1.4rem; letter-spacing: 1px; }
+.tagline { color: var(--muted); margin: 10px 0 22px; font-size: 0.9rem; }
+.home-box input {
+  width: 100%; padding: 10px 12px; margin-bottom: 12px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  color: var(--ink); font-size: 1rem; text-align: center;
+  font-family: var(--body);
+}
+.home-box input::placeholder { color: var(--muted); }
+#code-input { text-transform: uppercase; letter-spacing: 4px; font-family: var(--mono); font-weight: 700; }
+.join-row { display: flex; gap: 8px; margin-top: 12px; }
+.join-row input { flex: 1; margin: 0; }
+.error { color: var(--red); margin-top: 10px; min-height: 1.2em; font-size: 0.85rem; font-weight: 600; }
+.code { font-family: var(--mono); font-weight: 700; letter-spacing: 5px; color: var(--red); }
+#lobby-players { list-style: none; margin: 12px 0 20px; text-align: left; }
+#lobby-players li {
+  padding: 8px 12px; margin-bottom: 6px;
+  background: var(--paper2);
+  border-left: 4px solid var(--ink);
+  font-weight: 600;
+}
+#lobby-players li .host-tag {
+  font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+  color: var(--red); letter-spacing: 1px;
+}
+#lobby-players li.disconnected { opacity: 0.4; }
+
+/* ---------- Game layout ---------- */
+#phase-banner {
+  text-align: center; padding: 12px 10px;
+  font-family: var(--display);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: var(--paper);
+  color: var(--ink);
+  border-bottom: 3px solid var(--ink);
+}
+#phase-banner.your-turn {
+  background: var(--ink);
+  color: var(--paper);
+  border-bottom-color: var(--yellow);
+}
+#game-layout {
+  display: grid; grid-template-columns: 240px 1fr 270px;
+  gap: 14px; padding: 14px; max-width: 1400px; margin: 0 auto;
+}
+@media (max-width: 1000px) { #game-layout { grid-template-columns: 1fr; } }
+
+/* Players panel — party dossiers */
+#left-col { display: flex; flex-direction: column; gap: 14px; }
+#players-panel { display: flex; flex-direction: column; gap: 10px; }
+.player-card {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-left-width: 8px;
+  border-radius: 2px;
+  padding: 10px 12px;
+}
+.player-card.active { box-shadow: 4px 4px 0 var(--ink); }
+.player-card .pname { font-weight: 800; margin-bottom: 6px; }
+.player-card .you-tag {
+  font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 1px; color: var(--red);
+}
+.res-row { display: flex; gap: 6px; flex-wrap: wrap; font-size: 0.8rem; align-items: center; }
+.res-chip {
+  padding: 2px 8px; border-radius: 2px;
+  color: var(--paper); font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.res-chip.funds { background: var(--funds); }
+.res-chip.clout { background: var(--clout); }
+.res-chip.media { background: var(--media); }
+.res-chip.trust { background: var(--trust); color: var(--ink-press); }
+.manifesto-row { margin-top: 6px; font-size: 0.75rem; color: var(--muted); }
+.cap-warn { color: var(--red); font-size: 0.75rem; font-weight: 700; }
+
+/* ---------- Board — the constituency map ----------
+   A surveyed electoral map. Center is a small capital diamond in the middle,
+   bordered ONLY by North (a wedge above it) and South (a wedge below) — the two
+   hub districts that fan out to the six rim constituencies. Every inked border
+   is a legal gerrymander route, readable at a glance. */
+#board {
+  position: relative;
+  aspect-ratio: 1;
+  max-width: 680px;
+  margin: 0 auto;
+  border: 3px solid var(--ink);
+  background: var(--paper2);
+  box-shadow: 6px 6px 0 color-mix(in srgb, var(--ink) 18%, transparent);
+}
+/* halftone print grain over the whole sheet */
+#board::before {
+  content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background-image: radial-gradient(color-mix(in srgb, var(--ink) 12%, transparent) 0.6px, transparent 0.7px);
+  background-size: 11px 11px;
+}
+/* The inked constituency borders, drawn once over the tiles.
+   Center is a small diamond in the middle; North (a downward wedge) and South
+   (an upward wedge) are the only districts that share an edge with it. The other
+   six sit around the rim. Each drawn line is a legal gerrymander route.
+   ⚠ COORDINATE SYNC: every polyline/polygon point in this SVG duplicates a
+   vertex of the nine .zone clip-path polygons below (same 0–100 space;
+   clip-paths write them as percentages). If you move ANY clip-path vertex,
+   update the matching point(s) here, and vice versa — otherwise the drawn
+   ink border diverges from the actual click boundary. The stroke color
+   %232a2456 is --ink hardcoded (var() is illegal inside a data URI). */
+#board::after {
+  content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background-size: 100% 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%232a2456' stroke-width='0.5' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpolyline points='25,6 31,50'/%3E%3Cpolyline points='31,50 0,33'/%3E%3Cpolyline points='0,67 31,50'/%3E%3Cpolyline points='31,50 25,94'/%3E%3Cpolyline points='75,6 69,50'/%3E%3Cpolyline points='100,33 69,50'/%3E%3Cpolyline points='69,50 100,67'/%3E%3Cpolyline points='69,50 75,94'/%3E%3Cpolygon points='50,31 69,50 50,69 31,50' stroke-width='0.75'/%3E%3C/g%3E%3C/svg%3E");
+}
+/* Each zone spans the whole sheet, clipped to its territory.
+   clip-path clips pointer events too, so each shape is its own click target. */
+.zone { position: absolute; inset: 0; }
+.zone[data-zone='NW'] { clip-path: polygon(0% 0%, 25% 6%, 31% 50%, 0% 33%);             background-color: #ece4cd; }
+.zone[data-zone='N']  { clip-path: polygon(25% 6%, 75% 6%, 69% 50%, 50% 31%, 31% 50%);  background-color: #f1ecdd; }
+.zone[data-zone='NE'] { clip-path: polygon(100% 0%, 75% 6%, 69% 50%, 100% 33%);         background-color: #ede8d6; }
+.zone[data-zone='W']  { clip-path: polygon(0% 33%, 31% 50%, 0% 67%);                     background-color: #f0ead6; }
+.zone[data-zone='C']  { clip-path: polygon(50% 31%, 69% 50%, 50% 69%, 31% 50%);         background-color: #e7dfc4; }
+.zone[data-zone='E']  { clip-path: polygon(100% 33%, 69% 50%, 100% 67%);                background-color: #ece5d0; }
+.zone[data-zone='SW'] { clip-path: polygon(0% 100%, 0% 67%, 31% 50%, 25% 94%);          background-color: #eee8d2; }
+.zone[data-zone='S']  { clip-path: polygon(25% 94%, 75% 94%, 69% 50%, 50% 69%, 31% 50%);background-color: #f2ecdc; }
+.zone[data-zone='SE'] { clip-path: polygon(100% 100%, 100% 67%, 69% 50%, 75% 94%);      background-color: #ebe3cc; }
+
+/* 2 Player board (DD-26): six wards around the central Ring. Same 0–100 space —
+   vertices MUST match ZONE_POLY in client.js. */
+.zone[data-zone='Z1'] { clip-path: polygon(25% 0%, 75% 0%, 65% 30%, 35% 30%);                     background-color: #f1ecdd; }
+.zone[data-zone='Z2'] { clip-path: polygon(75% 0%, 100% 0%, 100% 50%, 80% 50%, 65% 30%);          background-color: #ece4cd; }
+.zone[data-zone='Z3'] { clip-path: polygon(100% 50%, 100% 100%, 75% 100%, 65% 70%, 80% 50%);      background-color: #eee8d2; }
+.zone[data-zone='Z4'] { clip-path: polygon(75% 100%, 25% 100%, 35% 70%, 65% 70%);                 background-color: #f2ecdc; }
+.zone[data-zone='Z5'] { clip-path: polygon(25% 100%, 0% 100%, 0% 50%, 20% 50%, 35% 70%);          background-color: #ede8d6; }
+.zone[data-zone='Z6'] { clip-path: polygon(0% 50%, 0% 0%, 25% 0%, 35% 30%, 20% 50%);              background-color: #f0ead6; }
+.zone[data-zone='Z7'] { clip-path: polygon(35% 30%, 65% 30%, 80% 50%, 65% 70%, 35% 70%, 20% 50%); background-color: #e7dfc4; }
+
+.zgroup[data-zone='Z1'] .zbody { left: 50%; top: 2%;  transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='Z2'] .zbody { right: 2%; top: 3%;  text-align: right; }
+.zgroup[data-zone='Z3'] .zbody { right: 2%; top: 84%; text-align: right; }
+.zgroup[data-zone='Z4'] .zbody { left: 50%; top: 88%; transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='Z5'] .zbody { left: 2%;  top: 84%; }
+.zgroup[data-zone='Z6'] .zbody { left: 2%;  top: 3%;  }
+.zgroup[data-zone='Z7'] .zbody { left: 50%; top: 42%; transform: translateX(-50%); text-align: center; }
+
+/* Election-night wash: the majority holder tints the whole territory.
+   Each owned-* class only declares its ideology color (--zc); the actual
+   wash is one shared color-mix rule, so palette retunes propagate. */
+.zone.owned-green  { --zc: var(--green); }
+.zone.owned-red    { --zc: var(--red); }
+.zone.owned-blue   { --zc: var(--blue); }
+.zone.owned-yellow { --zc: var(--yellow); }
+.zone.owned-purple { --zc: var(--purple); }
+.zone[class*='owned-'] { background-color: color-mix(in srgb, var(--zc) 20%, var(--paper)); }
+
+/* Legal targets light up (placement, gerrymander destinations, perks).
+   Owned zones keep their ideology tint mixed INTO the highlight, so
+   ownership stays readable while targeting. background-color only —
+   never the background shorthand, or the .blocked hatch image is erased. */
+.zone.selectable { cursor: pointer; background-color: #f3e9b4; }
+.zone.selectable:hover { background-color: #eedd8f; }
+.zone.selectable[class*='owned-'] { background-color: color-mix(in srgb, var(--zc) 25%, #f3e9b4); }
+.zone.selectable[class*='owned-']:hover { background-color: color-mix(in srgb, var(--zc) 25%, #eedd8f); }
+
+/* Labels + pegs ride in an UNCLIPPED overlay above the fills, so long district
+   names and edge pegs are never cut off by a territory's clip-path. Only the
+   peg dots take clicks; everything else lets clicks fall through to the map. */
+#board-overlay { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.zgroup { position: absolute; inset: 0; }
+
+/* Zone label plates, pinned near each territory's outer corner on a translucent
+   ballot-paper chit so they read over pegs and colour washes alike. */
+.zone .zbody, /* legacy mobile-fallback selector */
+.zgroup .zbody {
+  position: absolute;
+  z-index: 2; /* label plates ride above the pegs so text is never occluded */
+  background: rgba(240, 235, 221, 0.82);
+  padding: 2px 6px; border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(42, 36, 86, 0.12);
+}
+.zgroup[data-zone='NW'] .zbody { left: 2%;  top: 3%;  }
+.zgroup[data-zone='N']  .zbody { left: 50%; top: 3%;  transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='NE'] .zbody { right: 2%; top: 3%;  text-align: right; }
+.zgroup[data-zone='W']  .zbody { left: 2%;  top: 34%; }
+.zgroup[data-zone='C']  .zbody { left: 50%; top: 34%; transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='E']  .zbody { right: 2%; top: 34%; text-align: right; }
+.zgroup[data-zone='SW'] .zbody { left: 2%;  bottom: 3%; }
+.zgroup[data-zone='S']  .zbody { left: 50%; bottom: 3%; transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='SE'] .zbody { right: 2%; bottom: 3%; text-align: right; }
+
+.zgroup .zname {
+  font-weight: 800; font-size: 0.7rem;
+  text-transform: uppercase; letter-spacing: 1.2px;
+}
+.zgroup[data-zone='C'] .zname { font-size: 0.64rem; letter-spacing: 0.5px; }
+.zgroup .zreq {
+  font-family: var(--mono);
+  color: var(--muted); font-size: 0.62rem;
+}
+
+/* Scattered voter pegs — one full-board overlay per zone; dots re-enable clicks. */
+.zgroup .zpegs { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+/* The returning officer's stamp: outlined, inked, slightly off-square.
+   Prefixed with .zgroup so it outranks the generic .bg-* fill utility the tag
+   also carries (which we want only for its colour, not its background). */
+.zgroup .captured-tag {
+  display: inline-block; margin-top: 3px;
+  font-family: var(--display);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 7px;
+  transform: rotate(-4deg);
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  background: transparent;
+}
+.captured-tag.bg-green  { color: var(--green); }
+.captured-tag.bg-red    { color: var(--red); }
+.captured-tag.bg-blue   { color: var(--blue); }
+.captured-tag.bg-yellow { color: #a87d0a; }
+.captured-tag.bg-purple { color: var(--purple); }
+
+/* Coalition stamp: one tag, two party colours, joint custody (DD-23). */
+.zgroup .coalition-tag { padding: 0; border-color: var(--ink); color: var(--ink); pointer-events: auto; }
+.coalition-tag > span { display: inline-block; padding: 2px 5px; background: transparent; }
+.coalition-tag > span.bg-green  { color: var(--green); }
+.coalition-tag > span.bg-red    { color: var(--red); }
+.coalition-tag > span.bg-blue   { color: var(--blue); }
+.coalition-tag > span.bg-yellow { color: #a87d0a; }
+.coalition-tag > span.bg-purple { color: var(--purple); }
+.coalition-tag > span + span { border-left: 2px solid currentColor; }
+.coalition-leave {
+  border: none; background: transparent; color: var(--ink);
+  font-size: 0.6rem; padding: 2px 5px; cursor: pointer; min-height: 0;
+}
+.coalition-leave:hover { color: var(--red); }
+
+/* Home turf chip: the zone's local power, cursive like a ward boss's ledger note (DD-24). */
+.zgroup .turf-chip {
+  display: inline-block; margin-top: 2px;
+  font-size: 0.58rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--paper) 70%, transparent);
+  color: var(--ink);
+  pointer-events: auto;
+  cursor: help;
+}
+.turf-use {
+  border: 1px solid var(--ink); background: var(--paper2); color: var(--ink);
+  font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 0 5px; margin-left: 3px; border-radius: 6px; cursor: pointer; min-height: 0;
+}
+.turf-use:hover { background: var(--ink); color: var(--paper); }
+
+/* Zone requirement chip: the ward's terms of capture, pinned like a court notice (DD-26). */
+.zgroup .req-chip {
+  display: inline-block; margin-top: 2px;
+  font-size: 0.58rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--paper2) 80%, transparent);
+  color: var(--ink);
+  pointer-events: auto;
+  cursor: help;
+}
+#requirement-panel .conspiracy-card.picked { outline: 2px solid var(--ink); }
+#req-hand { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Hidden objective: a folded note only its owner reads (DD-25). */
+#objective-card {
+  background: var(--paper2);
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-top: 8px;
+}
+.objective-title { font-family: var(--display); text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; }
+.objective-text { font-size: 0.72rem; margin: 3px 0; }
+.objective-bonus { font-size: 0.62rem; opacity: 0.7; font-style: italic; }
+.result-objective { font-size: 0.72rem; opacity: 0.85; margin: -4px 0 6px 12px; }
+
+.slot {
+  position: absolute;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--paper2);
+  border: 1.5px solid var(--line);
+  /* inert pegs let a click fall through to the territory (so you can still place
+     a voter in a zone that already holds pegs); only interactive pegs grab it. */
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 1px rgba(29, 24, 64, 0.25);
+}
+.slot.majority { box-shadow: 0 0 0 2px var(--ink), 0 1px 1px rgba(29, 24, 64, 0.25); }
+/* Volatile Area — the black circle. Dangerous ground. */
+.slot.volatile {
+  border: 2px solid var(--ink-press);
+  background: repeating-linear-gradient(45deg, var(--paper2), var(--paper2) 2px, var(--ink-press) 2px, var(--ink-press) 3.5px);
+}
+.slot.volatile.peg-green  { background: var(--green); }
+.slot.volatile.peg-red    { background: var(--red); }
+.slot.volatile.peg-blue   { background: var(--blue); }
+.slot.volatile.peg-yellow { background: var(--yellow); }
+.slot.volatile.peg-purple { background: var(--purple); }
+/* Gerrymander: pegs you may pick up, and the one in hand */
+.slot.movable { cursor: pointer; outline: 2px dashed var(--ink); outline-offset: 1px; pointer-events: auto; z-index: 5; }
+.slot.movable:hover { transform: translate(-50%, -50%) scale(1.35); z-index: 6; }
+.slot.picked { outline: 3px solid var(--red); outline-offset: 1px; transform: translate(-50%, -50%) scale(1.35); pointer-events: auto; z-index: 6; }
+/* Volatile Area as a gerrymander trap destination */
+.slot.trap-target { cursor: pointer; outline: 2px dashed var(--red); outline-offset: 2px; animation: trap-pulse 1s ease-in-out infinite; pointer-events: auto; z-index: 5; }
+.slot.trap-target:hover { transform: translate(-50%, -50%) scale(1.4); z-index: 6; }
+@keyframes trap-pulse {
+  0%, 100% { outline-color: var(--red); }
+  50% { outline-color: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .slot.trap-target { animation: none; }
+}
+.peg-green  { background: var(--green);  border-color: var(--green); }
+.peg-red    { background: var(--red);    border-color: var(--red); }
+.peg-blue   { background: var(--blue);   border-color: var(--blue); }
+.peg-yellow { background: var(--yellow); border-color: var(--yellow); }
+.peg-purple { background: var(--purple); border-color: var(--purple); }
+.border-green  { border-left-color: var(--green) !important; }
+.border-red    { border-left-color: var(--red) !important; }
+.border-blue   { border-left-color: var(--blue) !important; }
+.border-yellow { border-left-color: var(--yellow) !important; }
+.border-purple { border-left-color: var(--purple) !important; }
+.bg-green  { background: var(--green); }
+.bg-red    { background: var(--red); }
+.bg-blue   { background: var(--blue); }
+.bg-yellow { background: var(--yellow); }
+.bg-purple { background: var(--purple); }
+
+/* Policy outcome — the gazette notice */
+#policy-outcome {
+  margin-top: 14px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 12px;
+}
+#policy-outcome .outcome-line { font-size: 0.85rem; margin-bottom: 8px; }
+
+/* The Market — the ballot counter */
+#hq-mat {
+  margin-top: 14px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 12px;
+}
+.hq-title {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+#hq-cards { display: flex; gap: 10px; flex-wrap: wrap; }
+.voter-card {
+  background: var(--paper2);
+  border: 2px solid var(--ink);
+  border-top-style: dashed; /* tear-off ballot chit */
+  border-radius: 2px;
+  padding: 10px 14px; min-width: 120px; text-align: center;
+}
+.voter-card .vcount { font-family: var(--display); font-size: 1.35rem; }
+.voter-card .vcost { margin-top: 6px; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+.voter-card.buyable { cursor: pointer; }
+.voter-card.buyable:hover { background: #efe4bb; }
+.voter-card.selected { background: #efe4bb; box-shadow: 4px 4px 0 var(--ink); }
+.voter-card.unaffordable { opacity: 0.4; border-color: var(--line); }
+#action-bar { margin-top: 12px; display: flex; align-items: center; gap: 14px; }
+#action-hint { color: var(--muted); font-size: 0.85rem; flex: 1; }
+#btn-end-turn { width: auto; margin: 0; }
+
+/* Log — the typewritten campaign trail */
+#log-panel {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 12px; max-height: 75vh;
+}
+#log {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink);
+  overflow-y: auto; max-height: 65vh;
+  display: flex; flex-direction: column-reverse;
+}
+#log p { padding: 4px 0; border-bottom: 1px dotted var(--line); }
+
+/* Modals — dealt onto the table */
+.modal {
+  position: fixed; inset: 0;
+  background: rgba(29, 24, 64, 0.6);
+  display: flex; align-items: center; justify-content: center; z-index: 50;
+}
+.modal-box {
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink-press);
+  padding: 28px 32px; width: 400px; text-align: center;
+  animation: deal 0.22s ease-out;
+}
+@keyframes deal {
+  from { transform: translateY(14px) rotate(-0.5deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-box { animation: none; }
+}
+.modal-box.wide { width: 560px; max-width: 92vw; }
+.modal-box { position: relative; }
+.modal-close {
+  position: absolute; top: 8px; right: 8px;
+  width: 32px; height: 32px; padding: 0;
+  border: none; background: transparent;
+  font-size: 1rem; font-weight: 700; color: var(--muted);
+  line-height: 1;
+}
+.modal-close:hover { background: var(--paper2); color: var(--ink); }
+.modal-box h3 {
+  font-family: var(--display);
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+}
+.question { font-size: 1.05rem; margin: 14px 0 18px; line-height: 1.5; font-weight: 600; }
+#policy-options { display: flex; flex-direction: column; gap: 10px; }
+.policy-btn { padding: 14px; text-align: left; line-height: 1.4; font-weight: 600; }
+.policy-btn:hover:enabled { background: var(--paper2); box-shadow: 3px 3px 0 var(--ink); }
+.policy-btn:disabled { cursor: default; }
+.policy-btn.spectator { border-style: dashed; color: var(--ink); opacity: 0.85; }
+.policy-btn.chosen { background: #f3ecd2; box-shadow: 4px 4px 0 var(--ink); }
+.policy-btn.dimmed { opacity: 0.4; border-color: var(--line); }
+.policy-btn .btn-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; font-size: 0.8rem; }
+#policy-note { font-family: var(--mono); font-size: 0.78rem; }
+.resource-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.res-btn { font-weight: 700; color: var(--paper); border-color: transparent; }
+.res-btn.funds { background: var(--funds); }
+.res-btn.clout { background: var(--clout); }
+.res-btn.media { background: var(--media); }
+.res-btn.trust { background: var(--trust); color: var(--ink-press); }
+.res-btn:hover { border-color: var(--ink); }
+.res-btn { position: relative; transition: transform 0.12s ease, box-shadow 0.12s ease; }
+.res-btn.picked { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink) inset, 0 2px 6px rgba(0,0,0,0.25); transform: translateY(-1px); }
+.res-count { display: inline-block; margin-left: 6px; font-size: 0.78rem; font-weight: 900; }
+.discard-row { display: flex; align-items: center; justify-content: space-between; margin: 8px 0; }
+.discard-row .stepper { display: flex; gap: 8px; align-items: center; }
+.discard-row .stepper b { font-variant-numeric: tabular-nums; min-width: 1.5ch; }
+.discard-row button { padding: 4px 12px; }
+#results { margin: 16px 0; }
+.result-row {
+  display: flex; justify-content: space-between;
+  padding: 8px 12px; background: var(--paper2);
+  border-left: 4px solid var(--line);
+  margin-bottom: 6px; font-weight: 600;
+}
+.result-row.winner { border-left-color: var(--red); background: #f3ecd2; }
+
+/* Action bar extras */
+#volatile-toggle {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex; align-items: center; gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#btn-skip-gerry, #btn-trade { width: auto; margin: 0; white-space: nowrap; }
+
+/* Trade offers — telegrams pinned to the left column */
+#trade-offers {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 12px;
+}
+.trade-offer {
+  border: 1px dashed var(--line);
+  padding: 8px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+.trade-offer .offer-line { margin-bottom: 4px; display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.trade-offer .offer-actions { display: flex; gap: 6px; margin-top: 6px; }
+.trade-offer .offer-actions button { padding: 4px 10px; font-size: 0.75rem; width: auto; margin: 0; }
+
+/* Trade modal */
+.trade-partner-row { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 10px 0 16px; font-weight: 700; }
+#trade-partner {
+  font-family: var(--body); font-weight: 700; font-size: 0.95rem;
+  padding: 6px 10px; border: 2px solid var(--ink); border-radius: 2px;
+  background: var(--paper); color: var(--ink);
+}
+.trade-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; text-align: left; }
+@media (max-width: 600px) { .trade-cols { grid-template-columns: 1fr; } }
+
+/* Conspiracies — the back room */
+#conspiracy-panel {
+  margin-top: 14px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 12px;
+}
+#conspiracy-hand { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+.conspiracy-card {
+  background: #efe9d6;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 8px 10px;
+  width: 160px;
+  position: relative;
+}
+.conspiracy-card.reaction { border-style: dashed; background: #eae4f2; }
+.cons-title { font-family: var(--display); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.cons-text { font-size: 0.72rem; color: var(--muted); line-height: 1.35; margin-bottom: 6px; }
+.cons-tag { font-family: var(--mono); font-size: 0.62rem; font-weight: 700; color: var(--purple); }
+.cons-play { width: 100%; margin: 0; padding: 5px; font-size: 0.78rem; background: var(--ink); color: var(--paper); }
+.cons-play:hover { background: var(--ink-press); }
+.cons-buy { font-family: var(--mono); font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.res-pick { display: inline-flex; gap: 5px; flex-wrap: wrap; }
+.res-pick .res-btn { padding: 4px 9px; font-size: 0.72rem; width: auto; margin: 0; }
+.res-pick .res-btn:disabled { opacity: 0.4; }
+.target-banner {
+  background: var(--ink); color: var(--paper);
+  font-weight: 700; font-size: 0.82rem;
+  padding: 8px 10px; border-radius: 2px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.target-banner button { padding: 3px 10px; font-size: 0.72rem; width: auto; margin: 0; }
+.peek-note { font-family: var(--mono); font-size: 0.78rem; margin-bottom: 8px; }
+
+/* Perks — the party machine */
+#perks-bar {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+#perks-bar button { padding: 5px 12px; font-size: 0.78rem; width: auto; margin: 0; }
+#perks-bar select {
+  font-family: var(--body); font-weight: 700; font-size: 0.78rem;
+  padding: 3px 6px; border: 2px solid var(--ink); border-radius: 2px;
+  background: var(--paper); color: var(--ink);
+}
+.bank-trade { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.perk-hint { font-family: var(--mono); font-weight: 700; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 8px; }
+
+/* Manifesto tracks with unlocked-perk pips */
+.manifesto-row .track { margin-right: 6px; white-space: nowrap; }
+.manifesto-row .track.funds { color: var(--funds); }
+.manifesto-row .track.clout { color: var(--clout); }
+.manifesto-row .track.media { color: var(--media); }
+.manifesto-row .track.trust { color: #a87d0a; }
+.perk-pips {
+  font-family: var(--mono); font-size: 0.62rem;
+  border: 1px solid currentColor; border-radius: 2px;
+  padding: 0 3px;
+}
+.discount-tag { color: var(--green); font-weight: 800; margin-left: 2px; }
+
+/* Elites — the inner circle */
+#elite-panel {
+  margin-top: 14px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 12px;
+}
+#elite-list { display: flex; gap: 10px; flex-wrap: wrap; }
+.elite-card {
+  background: #f1ead4;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  padding: 8px 10px;
+  width: 170px;
+}
+.elite-card.mine {
+  border-width: 3px; box-shadow: 4px 4px 0 var(--ink); width: auto; max-width: 340px;
+  background: #f7e9b0; border-color: #a8791a;
+}
+.elite-card.eligible { border-color: var(--red); }
+.elite-req { font-family: var(--mono); font-size: 0.66rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+.elite-flow {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  margin-top: 6px; font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+}
+.elite-flow select { font-family: var(--mono); font-size: 0.72rem; }
+.chip {
+  padding: 3px 8px; border: 2px solid var(--ink); border-radius: 2px;
+  background: var(--paper); font-family: var(--mono); font-size: 0.7rem; font-weight: 700; cursor: pointer;
+}
+.chip.on { background: var(--ink); color: var(--paper); }
+.spy-hands { margin-top: 8px; border-top: 1px dashed var(--muted); padding-top: 6px; }
+.cons-subtitle { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; color: var(--purple); margin-bottom: 4px; }
+.spy-row { font-size: 0.74rem; margin: 2px 0; }
+#reckoning {
+  margin: 14px 0; padding: 12px 14px; border: 3px solid var(--ink);
+  background: #1c1a17; color: var(--paper); border-radius: 2px;
+}
+.reck-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; }
+.reck-text { font-size: 0.86rem; line-height: 1.4; font-style: italic; }
+.reck-who { font-family: var(--mono); font-size: 0.68rem; font-weight: 700; color: var(--gold, #d8b24a); margin-top: 6px; }
+.link-btn {
+  border: none; background: none; padding: 0; margin-left: 8px;
+  font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
+  text-decoration: underline; cursor: pointer; color: var(--muted);
+}
+.link-btn:hover { color: var(--ink); background: none; }
+
+/* Mini badges on player dossiers */
+.mini-badge {
+  font-family: var(--mono); font-size: 0.62rem; font-weight: 700;
+  padding: 1px 5px; border-radius: 2px; margin-left: 4px;
+  border: 1px solid var(--ink);
+}
+.mini-badge.conspiracy { background: #eae4f2; color: var(--purple); border-color: var(--purple); }
+.mini-badge.iou { background: var(--red); color: var(--paper); border-color: var(--ink-press); }
+.player-card.targetable { cursor: pointer; outline: 2px dashed var(--red); outline-offset: 2px; }
+.player-card.targetable:hover { background: #f3ecd2; }
+
+/* Frozen (conspiracy-blocked) zone — hatched over whatever wash it carries */
+.zone.blocked { background-image: repeating-linear-gradient(45deg, transparent, transparent 6px, color-mix(in srgb, var(--ink) 10%, transparent) 6px, color-mix(in srgb, var(--ink) 10%, transparent) 12px); }
+
+/* Trade card checkboxes + chips */
+.trade-cards { margin-top: 10px; }
+.cards-label { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.card-check { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; margin-bottom: 3px; cursor: pointer; }
+.res-chip.conspiracy-chip { background: var(--purple); }
+.muted-chip { color: var(--muted); font-size: 0.78rem; }
+
+/* Auction modal */
+#modal-auction { z-index: 64; }
+.auction-buttons { display: flex; gap: 10px; margin-top: 12px; }
+.auction-buttons #btn-bid { flex: 1; margin: 0; }
+.auction-buttons #btn-pass { width: auto; margin: 0; }
+#bid-amount { font-variant-numeric: tabular-nums; min-width: 2ch; display: inline-block; text-align: center; }
+
+/* Reaction modal */
+#modal-reaction { z-index: 65; }
+#reaction-cards { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.react-btn { width: 100%; margin: 0; }
+
+/* Headline modal — stop the presses */
+#modal-headline { z-index: 60; }
+.headline-box { border-width: 4px; }
+.headline-masthead {
+  font-family: var(--display);
+  font-size: 0.8rem;
+  letter-spacing: 4px;
+  border-bottom: 3px double var(--ink);
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+}
+.headline-box h3 { font-size: 1.5rem; }
+.headline-summary { font-family: var(--mono); font-weight: 700; font-size: 0.85rem; }
+
+/* Toast — the urgent telegram */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--red); color: var(--paper);
+  font-family: var(--mono); font-weight: 700;
+  padding: 10px 22px; border-radius: 2px;
+  border: 2px solid var(--ink-press);
+  z-index: 100; font-size: 0.85rem;
+}
+
+/* Small screens: the map stays a scaled square that fills the column, with
+   smaller pegs and labels so the scatter still reads. */
+@media (max-width: 760px) {
+  #board { max-width: none; }
+  .slot { width: 12px; height: 12px; }
+  .zgroup .zname { font-size: 0.6rem; letter-spacing: 0.6px; }
+  .zgroup .zreq { font-size: 0.54rem; }
+  .zgroup .zbody { padding: 1px 4px; }
+}
+
+@media (max-width: 600px) {
+  .home-box { width: 92vw; padding: 28px 20px; }
+  #game-layout { padding: 10px; gap: 10px; }
+}

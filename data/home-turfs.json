@@ -1,0 +1,74 @@
+[
+  {
+    "zoneId": "NW",
+    "title": "Old Money",
+    "text": "The gated estates of the North-West remember their friends. Hold the zone and the cheques write themselves.",
+    "compulsory": false,
+    "target": "none",
+    "effect": { "type": "gain", "resources": { "funds": 2 } }
+  },
+  {
+    "zoneId": "N",
+    "title": "The Pulpit",
+    "text": "The North's revival tents seat thousands. Whoever holds the pulpit gets the collection plate and the amen.",
+    "compulsory": false,
+    "target": "none",
+    "effect": { "type": "gain", "resources": { "trust": 1, "clout": 1 } }
+  },
+  {
+    "zoneId": "NE",
+    "title": "Press Row",
+    "text": "Every editor in the North-East owes someone a favour. Tomorrow's front page reaches you tonight.",
+    "compulsory": false,
+    "target": "none",
+    "effect": { "type": "peekVoter" }
+  },
+  {
+    "zoneId": "W",
+    "title": "Dockworkers' Union",
+    "text": "The West's union marches whether you asked or not. Their banner has your face on it now.",
+    "compulsory": true,
+    "target": "none",
+    "effect": { "type": "gain", "resources": { "clout": 1 } }
+  },
+  {
+    "zoneId": "C",
+    "title": "The Capital",
+    "text": "Every corridor in the Center leaks. Hold the ministries and the files find their way to your desk.",
+    "compulsory": false,
+    "target": "none",
+    "effect": { "type": "drawConspiracy", "n": 1 }
+  },
+  {
+    "zoneId": "E",
+    "title": "Broadcast Hill",
+    "text": "The East's towers decide who exists this news cycle. Spike a story; run a different one.",
+    "compulsory": false,
+    "target": "hqCard",
+    "effect": { "type": "cycleHq" }
+  },
+  {
+    "zoneId": "SW",
+    "title": "The Badlands",
+    "text": "Nothing moves through the South-West without a toll. Your people lean on a rival's convoy.",
+    "compulsory": false,
+    "target": "player",
+    "effect": { "type": "burn", "n": 1 }
+  },
+  {
+    "zoneId": "S",
+    "title": "Restive South",
+    "text": "The South never wanted a ruler. Holding it means paying for the privilege, every single week.",
+    "compulsory": true,
+    "target": "self",
+    "effect": { "type": "burn", "n": 1 }
+  },
+  {
+    "zoneId": "SE",
+    "title": "The Docks",
+    "text": "The South-East's patronage machine never sleeps: a job, a favour, a vote. Seat a loyalist anywhere.",
+    "compulsory": false,
+    "target": "zone",
+    "effect": { "type": "addPegs", "n": 1 }
+  }
+]

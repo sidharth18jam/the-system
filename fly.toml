@@ -1,0 +1,33 @@
+# Fly.io config for The System. Run `fly launch --no-deploy` once to set an app name,
+# then `fly deploy`. A volume makes in-progress games survive restarts (see [mounts]).
+app = "the-system"
+primary_region = "sin"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  STATE_FILE = "/data/rooms-state.json"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.http_options]
+    # Socket.IO needs sticky, long-lived connections.
+    [http_service.http_options.response.headers]
+
+[[http_service.checks]]
+  method = "get"
+  path = "/healthz"
+  interval = "15s"
+  timeout = "2s"
+
+# Durable snapshot storage. Create with: fly volumes create system_data --size 1
+[mounts]
+  source = "system_data"
+  destination = "/data"

@@ -1,0 +1,100 @@
+[
+  {
+    "id": "req_smokeroom",
+    "title": "Smoke-Filled Room",
+    "text": "This ward's bosses only deal with proven operators. Play 2 conspiracies before you can capture it.",
+    "kind": "oneTime",
+    "check": "played2Conspiracies"
+  },
+  {
+    "id": "req_warchest",
+    "title": "Pay to Play",
+    "text": "Nothing moves here without money behind it. Hold 8+ total resources to capture this zone.",
+    "kind": "oneTime",
+    "check": "hold8Resources"
+  },
+  {
+    "id": "req_partyline",
+    "title": "The Party Line",
+    "text": "These voters want conviction, not slogans. Reach 3 cards in any one ideology first.",
+    "kind": "oneTime",
+    "check": "ideology3"
+  },
+  {
+    "id": "req_dirtytricks",
+    "title": "Dirty Tricks Welcome",
+    "text": "They respect a candidate who fights ugly. Spring a volatile trap on your rival first.",
+    "kind": "oneTime",
+    "check": "sprungTrap"
+  },
+  {
+    "id": "req_groundgame",
+    "title": "Ground Game",
+    "text": "No fly-in candidates. Have voters in 4+ constituencies before this one takes you seriously.",
+    "kind": "oneTime",
+    "check": "spread4"
+  },
+  {
+    "id": "req_airwaves",
+    "title": "Own the Airwaves",
+    "text": "This district votes for whoever's on TV. Hold 4+ media at once to capture it.",
+    "kind": "oneTime",
+    "check": "media4"
+  },
+  {
+    "id": "req_machinery",
+    "title": "The Machinery",
+    "text": "The local machine wants a partner with reach. Hold a majority somewhere else first.",
+    "kind": "oneTime",
+    "check": "heldMajority"
+  },
+  {
+    "id": "req_toll",
+    "title": "The Toll",
+    "text": "Capturing this zone costs 2 extra resources, paid on the spot. Everyone pays the toll.",
+    "kind": "onMajority",
+    "check": "payExtra2"
+  },
+  {
+    "id": "req_highbar",
+    "title": "The High Bar",
+    "text": "A skeptical crowd: you need one voter beyond the usual majority to take this zone.",
+    "kind": "onMajority",
+    "check": "needPlusOne"
+  },
+  {
+    "id": "req_hearts",
+    "title": "Hearts and Minds",
+    "text": "They can smell a cynic. Hold at least 2 public trust when you capture this zone.",
+    "kind": "onMajority",
+    "check": "holdTrust2"
+  },
+  {
+    "id": "req_solvent",
+    "title": "Solvency Check",
+    "text": "This district has been burned by debtors before. No outstanding IOU when you capture it.",
+    "kind": "onMajority",
+    "check": "noDebt"
+  },
+  {
+    "id": "req_fortress",
+    "title": "The Fortress",
+    "text": "Old walls, old habits. This constituency can never be gerrymandered, by anyone.",
+    "kind": "zonalRule",
+    "check": "noGerrymander"
+  },
+  {
+    "id": "req_restless",
+    "title": "Restless Streets",
+    "text": "Turnout here is chaos. The majority threshold rises by 1 for everyone.",
+    "kind": "zonalRule",
+    "check": "majorityPlus1"
+  },
+  {
+    "id": "req_ghostward",
+    "title": "The Ghost Ward",
+    "text": "Half the register is dead or gone. The majority threshold drops by 1 for everyone.",
+    "kind": "zonalRule",
+    "check": "majorityMinus1"
+  }
+]

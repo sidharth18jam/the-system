@@ -1,0 +1,20 @@
+{
+  "name": "the-system",
+  "version": "0.1.0",
+  "description": "The System \u2014 a multiplayer political-strategy web game, core loop and modes complete",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node test/simulate.js && node test/phase2.js && node test/phase3.js && node test/phase4.js && node test/coalitions.js && node test/phase5-modes.js && node test/persistence.js && node test/client-render.js && node test/socket-smoke.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "socket.io": "^4.7.0"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.7.0"
+  }
+}

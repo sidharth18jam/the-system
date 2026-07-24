@@ -1,0 +1,15 @@
+[
+  { "id": "fixer",       "title": "The Fixer",       "text": "Every policy you touch pays out twice — the bill, and the kickback.",                  "requires": { "mogul": 3, "icon": 3 }, "negation": "believer",    "power": "fixer" },
+  { "id": "operator",     "title": "The Operator",     "text": "The votes are yours whenever you decide to spend them. Efficiency is patience.",       "requires": { "mogul": 3, "icon": 3 }, "negation": "boss",     "power": "operator" },
+  { "id": "benefactor", "title": "The Benefactor", "text": "A gift to a rival, and a quiet appointment of your own. Charity is leverage.",          "requires": { "mogul": 3, "believer": 3 },    "negation": "boss",     "power": "benefactor" },
+  { "id": "backer",         "title": "The Backer",         "text": "You back two horses. When they run, you collect either way.",                          "requires": { "mogul": 3, "believer": 3 },    "negation": "icon", "power": "backer" },
+  { "id": "agitator",    "title": "The Agitator",    "text": "Chaos comes cheap when you know exactly which nerve to strike.",                       "requires": { "icon": 3, "boss": 3 },    "negation": "mogul",  "power": "agitator" },
+  { "id": "spinner",   "title": "The Spinner",   "text": "You don't wait for the news. You write it, and you aim it.",                           "requires": { "icon": 3, "boss": 3 },    "negation": "believer",    "power": "spinner" },
+  { "id": "organizer",       "title": "The Organizer",       "text": "Nothing is whispered that you don't already hear. Every hand is an open hand.",         "requires": { "icon": 3, "believer": 3 },   "negation": "mogul",  "power": "organizer" },
+  { "id": "informant",  "title": "The Informant",  "text": "Play dirty near you and lose a foot soldier. Play clean, and you gain the crowd.",     "requires": { "icon": 3, "believer": 3 },   "negation": "boss",     "power": "informant" },
+  { "id": "oracle",           "title": "The Oracle",           "text": "Sacrifice a follower, and the faithful reward you threefold.",                         "requires": { "boss": 3, "believer": 3 },       "negation": "mogul",  "power": "oracle" },
+  { "id": "insurgent",       "title": "The Insurgent",       "text": "Your cadres melt across borders overnight, wherever the front demands.",               "requires": { "boss": 3, "believer": 3 },       "negation": "icon", "power": "insurgent" },
+  { "id": "enforcer",        "title": "The Enforcer",        "text": "Everyone who governs pays you a cut. It is simply the cost of doing politics.",        "requires": { "boss": 3, "mogul": 3 },     "negation": "icon", "power": "enforcer" },
+  { "id": "strongman",       "title": "The Strongman",       "text": "Cross into your territory and you belong to it. Resistance is re-registration.",       "requires": { "boss": 3, "mogul": 3 },     "negation": "believer",    "power": "strongman" },
+  { "id": "maverick",       "title": "The Maverick",       "text": "Loyal to no single creed, you borrow whatever power the moment requires.",             "special": "maverick", "power": "maverick" }
+]

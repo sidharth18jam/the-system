@@ -1,0 +1,902 @@
+[
+  {
+    "id": "iq_001",
+    "question": "A foreign conglomerate offers to build a mega-factory in your poorest district — if it gets a 20-year tax holiday.",
+    "option_a": { "text": "Sign it. Jobs today are worth revenue tomorrow.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Refuse. No one gets a free ride on public land.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_002",
+    "question": "Your city's last public hospital is bankrupt. A private chain offers to take it over and keep it open.",
+    "option_a": { "text": "Privatize it. Better run for profit than shut for principle.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Raise taxes and keep it public. Some things aren't for sale.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_003",
+    "question": "A drought is crushing your farmers. The treasury can fund loan waivers now, or a canal that pays off in ten years.",
+    "option_a": { "text": "Build the canal. Real relief beats a good headline.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "Waive the loans. People are drowning today, not in ten years.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_004",
+    "question": "Your biggest donor's factory just failed a pollution audit. The report lands on your desk before the press sees it.",
+    "option_a": { "text": "Bury it until after the election. Loyalty has a price.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Release it and personally lead the shutdown.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_005",
+    "question": "Slum dwellers have occupied land your government already promised to a tech park's investors.",
+    "option_a": { "text": "Evict them. A signed deal is a signed deal.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Rehouse every family first, even if the investors walk.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_006",
+    "question": "The national airline is bleeding money. The unions promise a general strike the day you try to sell it.",
+    "option_a": { "text": "Sell it anyway. Taxpayers are not a piggy bank.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Keep it public and absorb the losses. Jobs are policy too.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_007",
+    "question": "Scientists confirm the new dam will power four million homes — and drown forty villages.",
+    "option_a": { "text": "Build it. The greatest good for the greatest number.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Halt it until every displaced family consents to resettlement.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_008",
+    "question": "Your education minister wants to double teacher salaries — by cutting the highway budget in half.",
+    "option_a": { "text": "Refuse. Roads move goods, and goods pay salaries.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "Do it. Teachers are building the next fifty years.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_009",
+    "question": "A crypto exchange will make your city its global headquarters — if you exempt it from banking regulations.",
+    "option_a": { "text": "Exempt them. Be the future's first mover.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "No exemptions. The rules exist because 2008 happened.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_010",
+    "question": "A port strike is choking exports. The union's only demand: reinstate two hundred fired workers.",
+    "option_a": { "text": "Hire replacements. Nobody holds the economy hostage.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Reinstate them. Labor built this port before capital found it.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_011",
+    "question": "Your state's groundwater is vanishing. A cola giant's bottling plant is the district's biggest employer — and its biggest well.",
+    "option_a": { "text": "Renew the license. A thousand families eat from that plant.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "Shut the wells. Water belongs to the village, not the bottle.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_012",
+    "question": "Insurers want to price premiums using citizens' fitness-tracker data. It would cut costs for the healthy.",
+    "option_a": { "text": "Allow it. People who jog shouldn't subsidize people who won't.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Ban it. Your heartbeat is not a credit score.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_013",
+    "question": "Developers want the old city's heritage quarter for luxury towers. The buildings are crumbling anyway.",
+    "option_a": { "text": "Sell. Nostalgia doesn't pay for sewage lines.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Protect it and fund restoration with a tourism levy.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_014",
+    "question": "A pharma company offers to run free clinics in your district — stocked exclusively with its own drugs.",
+    "option_a": { "text": "Accept. Free medicine is free medicine.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "Decline. A clinic that's also an advertisement is neither.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_015",
+    "question": "Ride-hailing drivers are striking for employee status. The platforms threaten to leave your state entirely.",
+    "option_a": { "text": "Side with the platforms. Flexibility built this industry.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Side with the drivers. An algorithm is still a boss.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_016",
+    "question": "Your flagship irrigation scheme is 40% over budget. The auditor suggests quietly reclassifying the overrun.",
+    "option_a": { "text": "Reclassify it. The scheme works; the paperwork can flex.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Publish the real numbers and fire the contractor.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_017",
+    "question": "A mining lease in tribal forest land would fund your entire welfare budget for a decade.",
+    "option_a": { "text": "Grant the lease. Poverty is the worse pollutant.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Refuse. Some ground is not yours to sell.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_018",
+    "question": "Payday lenders are circling your state's factory towns. Banning them leaves workers with loan sharks instead.",
+    "option_a": { "text": "License and tax them. Regulated greed beats hidden greed.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "Ban them and launch a public credit union.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_019",
+    "question": "Your power grid needs a bailout. One option: sell citizens' smart-meter usage data to advertisers.",
+    "option_a": { "text": "Sell the data. It's anonymous, and the lights stay on.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Raise tariffs on the rich instead. Privacy isn't a fuel.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_020",
+    "question": "A hedge fund wants to buy your state's grain reserves 'for efficiency'. The offer is embarrassingly generous.",
+    "option_a": { "text": "Sell. Warehouses full of rotting grain help no one.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Never. Food security is not a trading position.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_021",
+    "question": "The city's street vendors are unlicensed, untaxed — and feeding half your workforce lunch for pocket change.",
+    "option_a": { "text": "License and tax them. Everyone pays their share.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Leave them be and give them clean water hookups.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_022",
+    "question": "An automaker will build its plant in your state — if you waive the environmental impact hearing.",
+    "option_a": { "text": "Waive it. The hearing is theatre; the jobs are real.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Hold the hearing. Shortcuts poison rivers later.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_023",
+    "question": "Your pension fund can double returns by investing in a defence manufacturer with a grim export record.",
+    "option_a": { "text": "Invest. Pensioners eat returns, not principles.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Divest. Grandmothers shouldn't retire on artillery.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_024",
+    "question": "A billionaire offers to rebuild every school in your district — with his name on each gate and his foundation writing the syllabus.",
+    "option_a": { "text": "Take the deal. Children can't read a principled refusal.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "Take the buildings, refuse the syllabus — or nothing.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_025",
+    "question": "Flood insurance payouts would bankrupt the state fund. Actuaries advise quietly redrawing the flood-risk map.",
+    "option_a": { "text": "Redraw it. Solvency now, apologies later.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Publish the honest map and beg the centre for relief.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_026",
+    "question": "Protesters have blocked the capital's main highway for a week over farm prices.",
+    "option_a": { "text": "Clear the road by force. Order must hold.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Walk out and negotiate with them, cameras rolling.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_027",
+    "question": "Your intelligence chief proposes tapping opposition leaders' phones 'for national security'.",
+    "option_a": { "text": "Authorize it. Know your enemies before they know you.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Refuse — and leak the proposal to showcase your clean hands.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_028",
+    "question": "A rival's supporters heckled your youth wing. Your cadre wants permission to 'respond appropriately'.",
+    "option_a": { "text": "Let them. Fear is a currency too.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Forbid it — and stage a silent march past the rival's office.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_029",
+    "question": "A late-night comedy show mocks you relentlessly. The ratings are enormous.",
+    "option_a": { "text": "Have regulators take a sudden interest in the channel's licenses.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Go on the show and roast yourself harder than they ever could.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_030",
+    "question": "Riots erupt after a religious procession is stoned. Both communities blame each other, and the city is burning.",
+    "option_a": { "text": "Curfew and mass arrests tonight. Sort the guilt out later.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Walk unarmed through both neighbourhoods with every camera in the city.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_031",
+    "question": "A journalist has documents proving your coalition partner ran a land scam.",
+    "option_a": { "text": "Pressure her editor. The coalition survives; the story doesn't.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Break the coalition yourself and take credit for the cleanup.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_032",
+    "question": "An opposition MLA offers to defect — for a ministry and unspecified 'expenses'.",
+    "option_a": { "text": "Pay quietly. Numbers are numbers.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Expose the offer at a press conference he doesn't know about.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_033",
+    "question": "A viral influencer with forty million followers wants to interview you — but only about your personal life.",
+    "option_a": { "text": "Decline. The office deserves better than gossip.", "ideology": "boss", "rewards": { "clout": 2, "trust": 1 } },
+    "option_b": { "text": "Do it. Reach beats gravitas every single time.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_034",
+    "question": "Your security detail says the death threats are credible. Advisors want you off the campaign trail.",
+    "option_a": { "text": "Triple the security cordon and campaign behind glass.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Campaign anyway — in an open jeep, daring them.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_035",
+    "question": "A general hints, off the record, that the army 'stands with you' if the election result is disputed.",
+    "option_a": { "text": "Note it quietly. Insurance is insurance.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Repeat the remark on live TV and watch him deny it.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_036",
+    "question": "Your party's IT cell has built a deepfake of your rival slurring a minority community. It's flawless.",
+    "option_a": { "text": "Release it through cutouts. Deny everything.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Delete it — then announce publicly that you refused to use one.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_037",
+    "question": "A cricket world cup final falls on election eve. Your rival has bought every ad slot in the broadcast.",
+    "option_a": { "text": "Have the broadcast regulator find a problem with the slots.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Show up at the stadium and let the cameras find you.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_038",
+    "question": "Farmers plan a tractor rally through the capital on Republic Day.",
+    "option_a": { "text": "Ban the rally and barricade the highways.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Ride the lead tractor yourself.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_039",
+    "question": "An anchor who built your image now wants a Rajya Sabha seat. Refuse, and prime time turns hostile.",
+    "option_a": { "text": "Refuse — and remind him what your government licenses.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Give him the seat at a gala and make it a spectacle of gratitude.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_040",
+    "question": "Your own MPs are leaking against you before the leadership vote.",
+    "option_a": { "text": "Find the leakers. End their careers quietly, one by one.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Call an open press conference and take every question standing.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_041",
+    "question": "A foreign documentary crew is filming your district's failures. Their visas are up for renewal on your desk.",
+    "option_a": { "text": "Deny the renewal. National image is national interest.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Renew them — and give them a guided tour they'll never forget.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_042",
+    "question": "The opposition has called a bandh. Shops that open risk their windows; shops that close admit who runs the street.",
+    "option_a": { "text": "Deploy police at every market and dare the enforcers to show.", "ideology": "boss", "rewards": { "clout": 2, "trust": 1 } },
+    "option_b": { "text": "Go shopping yourself, on camera, at the busiest bazaar.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_043",
+    "question": "A hostile biography drops a week before polls. It's mostly true.",
+    "option_a": { "text": "Get an injunction tonight. Argue about truth after the count.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Read the worst chapter aloud at your next rally, laughing.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_044",
+    "question": "Your convoy gets stuck in a flood-hit village that wasn't on the itinerary. The water is knee-deep and rising.",
+    "option_a": { "text": "Push through. Schedules exist because chaos doesn't govern.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Get out, roll up your trousers, and wade in with the rescue teams.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_045",
+    "question": "A student leader's arrest has made her a national icon. Every day in custody grows her legend.",
+    "option_a": { "text": "Keep her in. Letting her walk crowns the defiance.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Release her personally, with flowers, and steal the moment.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_046",
+    "question": "Exit polls say you've lost. The official count starts in eight hours.",
+    "option_a": { "text": "Position loyal observers at every counting centre. Watch everything.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Declare victory tonight anyway and let the count argue with you.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_047",
+    "question": "Your predecessor's statue is being torn down by a mob that mostly votes for you.",
+    "option_a": { "text": "Send the police in hard. Mobs don't get a vote on history.", "ideology": "boss", "rewards": { "clout": 2, "trust": 1 } },
+    "option_b": { "text": "Arrive with a megaphone and redirect the crowd to a rally.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_048",
+    "question": "A hacker collective threatens to dump your party's internal chats unless you drop the surveillance bill.",
+    "option_a": { "text": "Never negotiate. Trace them and make arrests before the dump.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Dump the chats yourself first, annotated, with commentary.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_049",
+    "question": "Your national anthem plays before every film screening. A viral video shows a man who didn't stand being beaten.",
+    "option_a": { "text": "Defend the beating crowd's 'sentiment' and tighten the rule.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Visit the man in hospital and stand for him, cameras in tow.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_050",
+    "question": "The census leaked early, and it's bad news for your base's majority in three districts.",
+    "option_a": { "text": "Delay official publication indefinitely. Numbers can wait.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Release it with a slick 'New India' campaign that reframes everything.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_051",
+    "question": "A border skirmish leaves three soldiers dead. Elections are in two months.",
+    "option_a": { "text": "Order a televised retaliatory strike.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Quietly settle it and redirect the defence surge into ports and roads.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_052",
+    "question": "The census shows your rival's community is now the majority in a district you hold.",
+    "option_a": { "text": "Redraw the boundaries before the next poll.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Buy their loyalty with a targeted welfare package.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_053",
+    "question": "Illegal gold mines employ ten thousand people in your hills — and fund the local strongman who delivers you votes.",
+    "option_a": { "text": "Leave them alone. The strongman's machine is your machine.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Legalize, license, and tax every shaft.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_054",
+    "question": "Your police want military-grade drones for 'crowd management'. The manufacturer is offering a bulk discount.",
+    "option_a": { "text": "Buy the fleet. Visible power prevents its use.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Skip the drones; lease them the hardware only when courts approve.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_055",
+    "question": "A separatist region offers peace — if you grant it control of its own mineral royalties.",
+    "option_a": { "text": "Refuse. The map is not a negotiation.", "ideology": "boss", "rewards": { "clout": 2, "trust": 1 } },
+    "option_b": { "text": "Take the deal. Peace is cheaper than garrisons.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_056",
+    "question": "Smugglers run the border economy. Every crackdown collapses the bazaar towns that depend on them.",
+    "option_a": { "text": "Crack down anyway. A porous border is a broken state.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Open a free-trade zone and turn smugglers into taxpayers.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_057",
+    "question": "Your army chief wants conscription revived. Industry says it would gut their young workforce.",
+    "option_a": { "text": "Revive it. A nation that won't serve won't survive.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Refuse and fund a volunteer force with corporate partnership.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_058",
+    "question": "A tycoon under fraud investigation is your largest single employer. His arrest would crater three townships.",
+    "option_a": { "text": "Arrest him at dawn, on camera. No one is above the state.", "ideology": "boss", "rewards": { "clout": 2, "trust": 1 } },
+    "option_b": { "text": "Negotiate a settlement: he pays back double and keeps the plants running.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_059",
+    "question": "Foreign social apps refuse to open local data centres. Your security agencies want them banned.",
+    "option_a": { "text": "Ban them. Sovereignty over servers.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Threaten the ban, then sell them compliance at a price.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_060",
+    "question": "Your home minister wants a registry of every citizen's biometrics. A consortium offers to build it for free — keeping a copy.",
+    "option_a": { "text": "Build it in-house, whatever it costs. The state shares nothing.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Take the free build. Data is cheaper to share than to gather.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_061",
+    "question": "Gangs run the transport unions. A national logistics firm will invest — if you break them first.",
+    "option_a": { "text": "Break them with midnight raids and televised perp walks.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Let the firm buy the gangs out. Money launders faster than blood.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_062",
+    "question": "A sanctions list lands on your desk. Complying costs your exporters billions; defying costs you an ally.",
+    "option_a": { "text": "Defy it loudly. Great nations don't take dictation.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Comply publicly, and quietly route trade through a third flag.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_063",
+    "question": "Your state lottery funds hospitals — and bankrupts the poorest wards that play it most.",
+    "option_a": { "text": "Ban it. Vice is not a revenue model.", "ideology": "boss", "rewards": { "clout": 2, "trust": 1 } },
+    "option_b": { "text": "Double the jackpot and earmark every rupee for the same wards.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_064",
+    "question": "An arms fair wants to book your capital's convention centre. Activists promise a siege.",
+    "option_a": { "text": "Host it under heavy guard. Strength attracts strength.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Host it, triple the venue fee, and tax every deal signed inside.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_065",
+    "question": "Fuel subsidies are bankrupting the treasury, but removing them sparked riots the last time anyone tried.",
+    "option_a": { "text": "Remove them overnight, with troops pre-positioned.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Phase them out behind a cash-transfer scheme people can see.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_066",
+    "question": "Your intelligence bureau catches a rival party taking foreign money. Exposing it means revealing you were spying on them.",
+    "option_a": { "text": "Expose it. The treason headline buries the spying one.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Blackmail them privately into backing your finance bill.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_067",
+    "question": "A doomsday cult has bought an entire village and pays quadruple the local wage.",
+    "option_a": { "text": "Raid the compound before it becomes a headline.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Tax them like any employer and audit them into the open.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_068",
+    "question": "Your currency is in free fall. The central bank governor refuses to burn reserves defending it.",
+    "option_a": { "text": "Replace him tonight with someone who follows orders.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Back him publicly and let the currency find its floor.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_069",
+    "question": "Militants freed your kidnapped engineers after a 'facilitation fee' was paid by the contractor. The press is asking.",
+    "option_a": { "text": "Deny everything and bomb the militants' camp for the record.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Call it the cost of doing business and re-tender with better insurance.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_070",
+    "question": "Your navy seized a trawler full of contraband — registered to a shell company two donations away from your party.",
+    "option_a": { "text": "Prosecute everyone and let the chips fall.", "ideology": "boss", "rewards": { "clout": 2, "trust": 1 } },
+    "option_b": { "text": "Auction the cargo, fine the shell, and lose the paperwork.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_071",
+    "question": "A city ward is a no-go zone run by a 'community council' that keeps the peace better than your police ever did.",
+    "option_a": { "text": "Retake the ward. There is one law and it wears your uniform.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Contract them officially as a neighbourhood service provider.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_072",
+    "question": "The rail unions demand a safety overhaul after a derailment. The overhaul halts freight for six months.",
+    "option_a": { "text": "Order the trains to keep running under a new 'emergency protocol'.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Halt freight, compensate industry, and bill the repairs as stimulus.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_073",
+    "question": "Pirated textbooks sell at a tenth of the price. Publishers demand raids; parents pray you look away.",
+    "option_a": { "text": "Raid the printers. Property is property.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Bulk-license the books and sell them legally at the pirate price.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_074",
+    "question": "A retired general is building a private security empire staffed by his old battalion. He's loyal — for now.",
+    "option_a": { "text": "Absorb his firm into the state apparatus before it outgrows you.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Give him government contracts and make his fortune depend on yours.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_075",
+    "question": "Your prisons are at triple capacity. A conglomerate offers to build and run new ones, paid per prisoner.",
+    "option_a": { "text": "Keep prisons in state hands and expand them with the defence budget.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Sign the contract. The per-head rate is genuinely excellent.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_076",
+    "question": "A viral video shows your party worker bribing a booth official. The press wants a statement within the hour.",
+    "option_a": { "text": "Call it a deepfake and flood the cycle with counter-stories.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } },
+    "option_b": { "text": "Expel the worker publicly and demand an independent inquiry.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_077",
+    "question": "A celebrity offers to headline your rally — for a seat in the upper house.",
+    "option_a": { "text": "Deal. Star power wins elections; purity doesn't.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } },
+    "option_b": { "text": "Refuse. Seats are earned, not gifted at after-parties.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_078",
+    "question": "Two hours before your flagship rally, the venue's roof is declared unsafe.",
+    "option_a": { "text": "Move it to the streets — bigger crowd, better optics.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } },
+    "option_b": { "text": "Cancel it and refund every attendee's travel.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_079",
+    "question": "Your ghostwriter's memoir manuscript paints you as a saint. Chapter six never happened.",
+    "option_a": { "text": "Publish. Legends are built, not fact-checked.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } },
+    "option_b": { "text": "Cut the chapter and publish the flawed, true version.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_080",
+    "question": "A grieving mother from the stampede at your rally goes viral asking to meet you.",
+    "option_a": { "text": "Meet her at a televised event with a compensation cheque.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } },
+    "option_b": { "text": "Meet her privately, no cameras, and fund the inquiry she asks for.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_081",
+    "question": "Your data team can micro-target anxious first-time voters with tailored fear ads. It polls brilliantly.",
+    "option_a": { "text": "Run the ads. Fear clicks; hope scrolls past.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } },
+    "option_b": { "text": "Refuse, and pledge publicly to publish every ad you run.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_082",
+    "question": "A film about your life is in production. The director wants final cut; your team wants approval rights.",
+    "option_a": { "text": "Demand approval. Your story, your edit.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } },
+    "option_b": { "text": "Give the director final cut and take your chances with the truth.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_083",
+    "question": "Your child's wedding could be a quiet family affair — or a three-day spectacle with every ally and donor in attendance.",
+    "option_a": { "text": "The spectacle. Weddings are summits with better food.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } },
+    "option_b": { "text": "Keep it private and donate the difference, receipts public.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_084",
+    "question": "A rival collapses mid-debate, on stage, on camera. The moderator looks at you.",
+    "option_a": { "text": "Rush to his side and hold the frame until the ambulance comes.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } },
+    "option_b": { "text": "Clear the hall, suspend the debate, and say nothing to the press.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_085",
+    "question": "Pollsters say voters can't name a single policy of yours — but they know your slogan, your dog, and your lucky shawl.",
+    "option_a": { "text": "Lean in. The shawl gets its own merchandise line.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } },
+    "option_b": { "text": "Scrap the branding budget and hold town halls on policy only.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_086",
+    "question": "Your team leaked a fake 'internal memo' to bait the opposition into a false attack. It's working beautifully.",
+    "option_a": { "text": "Let it run. Their credibility burns; your hands look clean.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } },
+    "option_b": { "text": "Kill the operation and own up before it detonates.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_087",
+    "question": "A temple, a church, and a mosque all invite you for the same festival evening. Attending one offends two.",
+    "option_a": { "text": "Attend all three with a camera crew and call it a pilgrimage.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } },
+    "option_b": { "text": "Attend none, and host an open interfaith dinner at your residence.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_088",
+    "question": "An orphaned boy you posed with in a flood-relief photo is now homeless again. A reporter found him.",
+    "option_a": { "text": "Re-stage the reunion — bigger, better, with a house key this time.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } },
+    "option_b": { "text": "House him quietly and fix the scheme that failed him.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_089",
+    "question": "Your speechwriter quit and published every draft you rejected — including the honest ones.",
+    "option_a": { "text": "Deliver the most brutal rejected draft at your next rally, verbatim.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } },
+    "option_b": { "text": "Thank her publicly and admit which drafts you wish you'd given.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_090",
+    "question": "A stray dog adopted your campaign office and the internet has fallen in love with it.",
+    "option_a": { "text": "Make it the campaign mascot. Merch by Friday.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } },
+    "option_b": { "text": "Use the moment to fund the city's first real animal shelter.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_091",
+    "question": "Your opponent's teenage daughter is being savaged online by accounts your IT cell 'doesn't control'.",
+    "option_a": { "text": "Condemn the trolling in a soft-focus video that trends for days.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } },
+    "option_b": { "text": "Shut the accounts down and hand the server logs to her family's lawyers.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_092",
+    "question": "A quiz show invites you on for charity. Your staff can get the questions in advance.",
+    "option_a": { "text": "Take the questions. Winning is the story.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } },
+    "option_b": { "text": "Go in cold and lose with grace if you must.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_093",
+    "question": "Monsoon floods hit on polling week. Relief trucks can carry your party stickers, or they can leave now.",
+    "option_a": { "text": "Sticker every truck. Aid unclaimed is aid wasted.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } },
+    "option_b": { "text": "Send them unmarked tonight.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_094",
+    "question": "Your old debate clips are being remixed into flattering AI mashups by fans. They're not accurate, but they're glorious.",
+    "option_a": { "text": "Amplify them. Myth travels lighter than transcript.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } },
+    "option_b": { "text": "Post corrections under each one, even the flattering ones.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_095",
+    "question": "The stadium you promised is half-built and the money's gone. The inauguration is already scheduled.",
+    "option_a": { "text": "Inaugurate the finished half at night, lit like a dream.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } },
+    "option_b": { "text": "Cancel the event and publish the forensic audit instead.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_096",
+    "question": "A dying organizer's last wish is a debate with you. Your advisors call it a trap with a halo.",
+    "option_a": { "text": "Accept — and produce it as the television event of the year.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } },
+    "option_b": { "text": "Visit him off-camera and answer every question he has, alone.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_097",
+    "question": "Your approval is cratering. A consultant proposes a 'manufactured comeback': staged setback, staged redemption.",
+    "option_a": { "text": "Run the arc. Voters love a resurrection.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } },
+    "option_b": { "text": "Fire the consultant and let the numbers say what they say.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_098",
+    "question": "A schoolgirl's question — 'Why did you lie about the lake cleanup?' — is trending from your town hall.",
+    "option_a": { "text": "Invite her to co-host your next broadcast about the lake.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } },
+    "option_b": { "text": "Answer her in writing, publish the letter, and restart the cleanup.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_099",
+    "question": "Your party anthem was plagiarized from a folk singer who died poor. Her granddaughter just found out.",
+    "option_a": { "text": "Sign the granddaughter as the anthem's official voice, royalties attached.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } },
+    "option_b": { "text": "Pay the estate back-royalties and credit the singer at every rally.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_100",
+    "question": "A billionaire offers to fund your entire campaign — anonymously, through shell trusts.",
+    "option_a": { "text": "Decline theatrically and launch a televised crowdfunding marathon.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } },
+    "option_b": { "text": "Decline quietly and cap every donation at a worker's day-wage.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_101",
+    "question": "Your state's film industry demands subsidies after streaming gutted theatre revenue.",
+    "option_a": { "text": "Let the market decide what people watch.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Subsidize it — and premiere every funded film at your rallies.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_102",
+    "question": "The IPL wants your city as a franchise host. The stadium bid would eat the metro extension's budget.",
+    "option_a": { "text": "Fund the metro. Commuters vote; spectators cheer.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "Win the franchise and throw the opening ceremony of the decade.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_103",
+    "question": "A statue of your party's icon is proposed — taller than any in the world, at the cost of a small city's budget.",
+    "option_a": { "text": "Scale it down and put the difference into industrial parks.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Build it taller. Skylines are arguments you win forever.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_104",
+    "question": "Your tourism board can market the state's beaches — or its slums, where a hit film was shot.",
+    "option_a": { "text": "Beaches. Sell what people pay to see twice.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "The slum tour, narrated by the film's star. Controversy is currency.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_105",
+    "question": "A unicorn founder wants to livestream a cabinet meeting 'for transparency'. His platform gets the exclusive.",
+    "option_a": { "text": "Refuse the stream, but sell the platform your press briefings instead.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Stream it. Government as content; you as the lead.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_106",
+    "question": "The budget speech is tomorrow. Your advisors drafted an honest, boring one; your instincts want fireworks.",
+    "option_a": { "text": "Boring and credible. Markets punish poetry.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "Fireworks. Announce the moonshot; fund it later.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_107",
+    "question": "An airline will paint your face on a plane for the inaugural route to your constituency.",
+    "option_a": { "text": "Decline the paint job; negotiate cheaper cargo rates instead.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "Take the livery and fly the first flight yourself, waving.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_108",
+    "question": "A gaming company offers your likeness for their election-strategy game. Royalty per download.",
+    "option_a": { "text": "Negotiate equity, not royalties, and stay out of the trailer.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Voice the character yourself and stream the launch.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_109",
+    "question": "Your ministry can announce the jobs data quietly on Friday evening — or you can own the bad numbers at a press meet.",
+    "option_a": { "text": "Friday evening. Markets read footnotes; voters don't.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Own it live, with a whiteboard, and pin the blame where it sells.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_110",
+    "question": "A luxury brand wants to sponsor the republic's anniversary parade.",
+    "option_a": { "text": "Take the sponsorship and cut the parade from the budget entirely.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Refuse the logo but borrow their creative director for the show.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_111",
+    "question": "Your state fair is a money pit, but four million people come every year and every one of them sees your face.",
+    "option_a": { "text": "Privatize the fair and take a cut of the gate.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Double the budget and headline the closing night yourself.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_112",
+    "question": "An OTT platform wants to make a docuseries on your government — full access, no veto.",
+    "option_a": { "text": "Charge them for access and cap the filming days.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Full access. You'll simply out-perform the edit.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_113",
+    "question": "The old textile mill could be auctioned to developers — or become the venue for the biggest music festival in the country.",
+    "option_a": { "text": "Auction it. Land appreciates; festivals evaporate.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Festival. A hundred thousand kids screaming in your city, annually.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_114",
+    "question": "Your face recognition pilot caught a famous fugitive at a wedding. Announce the tech, and the courts descend.",
+    "option_a": { "text": "Stay quiet, credit 'police work', and quietly renew the contract.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Announce it with the arrest footage. Let the courts chase the applause.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_115",
+    "question": "A rival state poached your auto plant with tax breaks. Your team drafted two responses: a counter-offer, or a very funny billboard.",
+    "option_a": { "text": "The counter-offer. Factories outlast punchlines.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "The billboard. Make the poachers a national joke.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_116",
+    "question": "Space agency scientists want funding for a modest climate satellite. Your advisors want a flag on the moon.",
+    "option_a": { "text": "The satellite. It pays for itself in crop forecasts.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "The moon. Nobody ever wept at a crop forecast.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_117",
+    "question": "Your city's iconic bridge needs repairs. Engineers want it closed for a year; event planners want a farewell festival on it first.",
+    "option_a": { "text": "Close it tonight. Liability is not a photo op.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "One last festival — fireworks, then scaffolding.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_118",
+    "question": "A tycoon's daughter's wedding wants to book the heritage fort for a week, closing it to the public.",
+    "option_a": { "text": "Rent it at an eye-watering rate, earmarked for restoration.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Refuse — then host a free public concert at the fort that weekend.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_119",
+    "question": "Your new expressway needs a name. The bankers financing it suggested theirs.",
+    "option_a": { "text": "Sell the naming rights. Concrete doesn't care what it's called.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Name it after a beloved poet and recite her at the ribbon.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_120",
+    "question": "A meme account with ten million followers will endorse you — if you follow back and reply to one meme a week.",
+    "option_a": { "text": "Buy the account outright through an agency instead.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Reply to the memes personally. Become the meme.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_121",
+    "question": "Your health ministry's anti-smoking campaign is ready. The tobacco lobby offers to fund double the airtime — with softer wording.",
+    "option_a": { "text": "Take their money and their wording. Reach is reach.", "ideology": "mogul", "rewards": { "funds": 2, "media": 1 } },
+    "option_b": { "text": "Run the brutal version and cast a dying film star who volunteered.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_122",
+    "question": "An airline strands two hundred pilgrims at midnight. Your office can book them buses — or you can arrive at the airport at 2 a.m.",
+    "option_a": { "text": "Book the buses, invoice the airline, and fine them at dawn.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "Arrive at 2 a.m. with chai and camera crews.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_123",
+    "question": "The national broadcaster wants to auction your weekly radio slot to private bidders.",
+    "option_a": { "text": "Let them auction it — and take a revenue share for the exchequer.", "ideology": "mogul", "rewards": { "funds": 2, "clout": 1 } },
+    "option_b": { "text": "Keep the slot and turn it into a live phone-in with no screening.", "ideology": "icon", "rewards": { "media": 2, "trust": 1 } }
+  },
+  {
+    "id": "iq_124",
+    "question": "A start-up will drone-deliver medicine to your hill villages. Their demo crashed last month, spectacularly.",
+    "option_a": { "text": "Pilot it quietly in two villages with insurance in writing.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "Launch it live on television, first package to a war widow.", "ideology": "icon", "rewards": { "media": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_125",
+    "question": "Your budget has one crore left: a small-business credit line, or floodlights for the night cricket league every ward plays in.",
+    "option_a": { "text": "The credit line. Compounding beats cheering.", "ideology": "mogul", "rewards": { "funds": 2, "trust": 1 } },
+    "option_b": { "text": "The floodlights — and bowl the first over yourself.", "ideology": "icon", "rewards": { "media": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_126",
+    "question": "A militant fringe group publicly endorses you. Disowning them may cost you a swing district.",
+    "option_a": { "text": "Stay silent. Votes don't ask for character certificates.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Reject the endorsement on live television.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_127",
+    "question": "A informant in your own ministry alleges inflated defence contracts.",
+    "option_a": { "text": "Transfer him somewhere quiet and audit internally.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Protect him publicly and open the books.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_128",
+    "question": "Election eve: a rumor spreads that voting machines in your stronghold are rigged — in your favor.",
+    "option_a": { "text": "Dismiss it and accuse rivals of sore-loser tactics.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Demand a full recount yourself before anyone else asks.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_129",
+    "question": "A textbook committee wants to rewrite history chapters your base finds 'insulting'.",
+    "option_a": { "text": "Approve the rewrite. Pride builds nations.", "ideology": "boss", "rewards": { "clout": 2, "trust": 1 } },
+    "option_b": { "text": "Block it. History is not a campaign asset.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_130",
+    "question": "Your party's founder — long dead — is accused in a new memoir of rigging his first election.",
+    "option_a": { "text": "Sue the publisher and rally the faithful at his memorial.", "ideology": "boss", "rewards": { "clout": 2, "trust": 1 } },
+    "option_b": { "text": "Commission an open historical inquiry, whatever it finds.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_131",
+    "question": "Police shot a gangster in a 'staged encounter'. Half the city is celebrating; the other half knows what staged means.",
+    "option_a": { "text": "Decorate the officers. Some verdicts can't wait for courts.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Order a judicial probe into the encounter, celebrations be damned.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_132",
+    "question": "An anti-conversion bill would thrill your base and terrify a minority that has never voted for you anyway.",
+    "option_a": { "text": "Pass it. Govern for the people who show up for you.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Kill it in committee and absorb the base's anger.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_133",
+    "question": "Your nephew was caught on tape threatening a contractor 'in your name'.",
+    "option_a": { "text": "Bury the tape and remind the contractor whose district this is.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Hand the tape to the police and your nephew to a lawyer.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_134",
+    "question": "A curfew-breaking funeral procession for a beloved cleric is heading to the old city. Ten thousand mourners, zero permits.",
+    "option_a": { "text": "Stop it at the gates. A curfew that bends is not a curfew.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Lift the curfew for the night and walk with the mourners.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_135",
+    "question": "The sedition law is a colonial relic — and the sharpest knife in your drawer.",
+    "option_a": { "text": "Keep it. You didn't write the law; you just inherited its uses.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Repeal it while you're strong enough to survive without it.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_136",
+    "question": "Your challenger was jailed on old charges the courts suddenly remembered. Everyone assumes it was you. It wasn't.",
+    "option_a": { "text": "Say nothing. Useful assumptions are still useful.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Demand her bail publicly and beat her fair in the open.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_137",
+    "question": "A frontier village keeps voting for the separatists. The army suggests relocating it 'for its own safety'.",
+    "option_a": { "text": "Relocate it. Geography is loyalty.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Build the school and clinic they've asked about for thirty years.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_138",
+    "question": "An informer inside a protest camp has been feeding you everything. He's just been discovered, and the camp is deciding his fate.",
+    "option_a": { "text": "Extract him with force tonight, whatever the footage looks like.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Confess the operation, disband it, and negotiate his safe release.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_139",
+    "question": "Your interior ministry drafted a list of NGOs to be 'financially reviewed'. Every name on it once criticized you.",
+    "option_a": { "text": "Sign it. Coincidences happen to critics.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Shred it and order reviews by random lottery instead.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_140",
+    "question": "A lynch mob's ringleader turns out to be your booth committee president in a village you can't win without.",
+    "option_a": { "text": "Let the case crawl. The village will forget; the booth won't.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Expel him today and testify if they call you.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_141",
+    "question": "The blasphemy case against a poet is legally hollow, but dropping it means facing the mob that filed it.",
+    "option_a": { "text": "Let the case run for years. Process is its own punishment.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Withdraw it and read her poem from your office steps.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_142",
+    "question": "Your bodyguards beat a man who lunged at you. He turns out to have been reaching for a petition.",
+    "option_a": { "text": "Stand by your detail. Hesitation gets leaders killed.", "ideology": "boss", "rewards": { "clout": 2, "trust": 1 } },
+    "option_b": { "text": "Visit him in hospital, read the petition, and act on it.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_143",
+    "question": "An election in a neighbouring country was stolen in broad daylight. Their opposition asks for your voice; their junta controls your gas pipeline.",
+    "option_a": { "text": "Congratulate the junta. Warm homes over warm feelings.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Call the theft a theft and start pricing alternative gas.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_144",
+    "question": "Your prisons chief proposes solitary confinement for the hunger-striking political prisoners 'to protect them'.",
+    "option_a": { "text": "Approve it. Martyrdom needs an audience; remove the audience.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Meet the strikers yourself and hear the demands first-hand.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_145",
+    "question": "A convicted don is winning his prison-cell election campaign in your alliance's ticket.",
+    "option_a": { "text": "Keep him on the ticket. His ward delivers, cell or no cell.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Tear up the alliance seat and run a schoolteacher instead.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_146",
+    "question": "The riot commission's report is finished. It names two of your ministers.",
+    "option_a": { "text": "Classify it 'pending review' until after the election.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Table it in full and sack both ministers by evening.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_147",
+    "question": "Refugees from a border war are camping at your state's edge. Winter arrives in six weeks.",
+    "option_a": { "text": "Seal the border. Sympathy doesn't scale.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Open the schools as shelters and register every child.", "ideology": "believer", "rewards": { "trust": 2, "funds": 1 } }
+  },
+  {
+    "id": "iq_148",
+    "question": "A code word in your party's chat groups triggers coordinated harassment of any journalist who crosses you. You just learned it exists.",
+    "option_a": { "text": "Leave it running. You never ordered it; you merely benefit.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Expose and dismantle it, naming the coordinators.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  },
+  {
+    "id": "iq_149",
+    "question": "Your old mentor, now senile, keeps making communal remarks at party events. The base loves him.",
+    "option_a": { "text": "Keep him on stage. He says what you can't.", "ideology": "boss", "rewards": { "clout": 2, "media": 1 } },
+    "option_b": { "text": "Retire him with honour and a public thank-you tour.", "ideology": "believer", "rewards": { "trust": 2, "clout": 1 } }
+  },
+  {
+    "id": "iq_150",
+    "question": "The opposition offers a pact: neither side runs candidates with criminal records. Their list is longer than yours — barely.",
+    "option_a": { "text": "Refuse. Never let rivals write your candidate list.", "ideology": "boss", "rewards": { "clout": 2, "funds": 1 } },
+    "option_b": { "text": "Sign it on stage, shaking hands, and dare them to honor it.", "ideology": "believer", "rewards": { "trust": 2, "media": 1 } }
+  }
+]
