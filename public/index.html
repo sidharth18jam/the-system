@@ -37,7 +37,7 @@
       <button id="btn-invite">Share invite link</button>
       <ul id="lobby-players"></ul>
       <div id="mode-row" class="trade-partner-row hidden">
-        <label for="mode-select">Mode</label>
+        <label for="mode-select">Mode <button class="info-btn" data-info="modes" aria-label="Explain game modes">i</button></label>
         <select id="mode-select">
           <option value="standard">Standard</option>
           <option value="homeTurfs">Home Turfs</option>
@@ -51,11 +51,12 @@
 
   <!-- ============ GAME ============ -->
   <div id="screen-game" class="screen hidden">
-    <div id="phase-banner"></div>
+    <div id="banner-row"><div id="phase-banner"></div><button class="info-btn" data-info="basics" aria-label="Explain how to win">i</button></div>
 
     <div id="game-layout">
       <!-- Left: players + open trade offers -->
       <aside id="left-col">
+        <div class="hq-title">Players <button class="info-btn" data-info="players" aria-label="Explain players and resources">i</button></div>
         <div id="players-panel"></div>
         <div id="objective-card" class="hidden"></div>
         <div id="trade-offers" class="hidden"></div>
@@ -63,10 +64,11 @@
 
       <!-- Center: board -->
       <main id="board-wrap">
+        <div class="hq-title">Constituencies <button class="info-btn" data-info="board" aria-label="Explain the board">i</button></div>
         <div id="board"></div>
         <div id="policy-outcome" class="hidden"></div>
         <div id="hq-mat">
-          <div class="hq-title">THE MARKET — Voter Cards <span id="deck-count"></span></div>
+          <div class="hq-title">THE MARKET — Voter Cards <span id="deck-count"></span> <button class="info-btn" data-info="market" aria-label="Explain the Market">i</button></div>
           <div id="hq-cards"></div>
           <div id="action-bar">
             <span id="action-hint"></span>
@@ -77,6 +79,7 @@
             <button id="btn-hold" class="hidden" title="Operator: bank this card's voters in reserve">🗄 Hold in reserve</button>
             <button id="btn-trade" class="hidden">Propose Trade</button>
             <button id="btn-coalition" class="hidden">Coalition</button>
+            <button id="gerry-info" class="info-btn hidden" data-info="gerrymander" aria-label="Explain gerrymandering">i</button>
             <button id="btn-skip-gerry" class="hidden">Skip Gerrymander</button>
             <button id="btn-end-turn" class="primary hidden">End Turn</button>
           </div>
@@ -89,7 +92,7 @@
 
       <!-- Right: log -->
       <aside id="log-panel">
-        <div class="hq-title">Campaign Trail</div>
+        <div class="hq-title">Campaign Trail <button class="info-btn" data-info="log" aria-label="Explain the log">i</button></div>
         <div id="log"></div>
       </aside>
     </div>
@@ -97,7 +100,7 @@
     <!-- Setup pick modal -->
     <div id="modal-setup" class="modal hidden">
       <div class="modal-box">
-        <h3>Starting Resources</h3>
+        <h3>Starting Resources <button class="info-btn" data-info="setup" aria-label="Explain starting resources">i</button></h3>
         <p id="setup-order" class="tagline"></p>
         <p>Pick <b id="picks-left"></b> resource(s). Later turn order = more resources.</p>
         <div class="resource-buttons">
@@ -114,7 +117,7 @@
     <div id="modal-policy" class="modal hidden">
       <div class="modal-box wide">
         <button id="policy-close" class="modal-close hidden" aria-label="Close">✕</button>
-        <h3 id="policy-title">Policy Question</h3>
+        <h3><span id="policy-title">Policy Question</span> <button class="info-btn" data-info="policy" aria-label="Explain policy questions">i</button></h3>
         <p id="policy-question" class="question"></p>
         <div id="policy-options">
           <button id="policy-a" class="policy-btn"></button>
@@ -127,7 +130,7 @@
     <!-- Discard modal -->
     <div id="modal-discard" class="modal hidden">
       <div class="modal-box">
-        <h3>Over the Cap</h3>
+        <h3>Over the Cap <button class="info-btn" data-info="discard" aria-label="Explain the resource cap">i</button></h3>
         <p>Discard <b id="discard-count"></b> resource(s) — get down to 12 before you act.</p>
         <div id="discard-rows"></div>
         <button id="btn-discard" class="primary">Discard</button>
@@ -138,7 +141,7 @@
     <div id="modal-trade" class="modal hidden">
       <div class="modal-box wide">
         <button id="trade-close" class="modal-close" aria-label="Close">✕</button>
-        <h3>Propose a Trade</h3>
+        <h3>Propose a Trade <button class="info-btn" data-info="trade" aria-label="Explain trading">i</button></h3>
         <div class="trade-partner-row">
           <label for="trade-partner">With</label>
           <select id="trade-partner"></select>
@@ -163,7 +166,7 @@
     <!-- 2 Player setup bid modal (DD-26) -->
     <div id="modal-setupbid" class="modal hidden">
       <div class="modal-box">
-        <h3>⚔ Bid for the First Move</h3>
+        <h3>⚔ Bid for the First Move <button class="info-btn" data-info="setupbid" aria-label="Explain the first-move bid">i</button></h3>
         <p class="tagline">You hold 8 resources. Bid any part of them — secretly — for the right to move first. Both bids are paid to the reserve. Ties are re-bid.</p>
         <div class="discard-row">
           <span>Your bid</span>
@@ -182,7 +185,7 @@
     <div id="modal-coalition" class="modal hidden">
       <div class="modal-box wide">
         <button id="coalition-close" class="modal-close" aria-label="Close">✕</button>
-        <h3>Propose a Coalition</h3>
+        <h3>Propose a Coalition <button class="info-btn" data-info="coalition" aria-label="Explain coalitions">i</button></h3>
         <div class="trade-partner-row">
           <label for="coalition-zone">Constituency</label>
           <select id="coalition-zone"></select>
@@ -200,7 +203,7 @@
     <!-- Auction modal -->
     <div id="modal-auction" class="modal hidden">
       <div class="modal-box wide">
-        <div class="headline-masthead">PUBLIC AUCTION</div>
+        <div class="headline-masthead">PUBLIC AUCTION <button class="info-btn" data-info="auction" aria-label="Explain auctions and IOUs">i</button></div>
         <h3 id="auction-title"></h3>
         <p id="auction-status" class="question"></p>
         <div id="auction-controls" class="hidden">
@@ -224,8 +227,9 @@
     <!-- Reaction modal -->
     <div id="modal-reaction" class="modal hidden">
       <div class="modal-box wide">
-        <h3>⚡ Conspiracy Against You</h3>
+        <h3>⚡ Conspiracy Against You <button class="info-btn" data-info="reaction" aria-label="Explain reactions">i</button></h3>
         <p id="reaction-text" class="question"></p>
+        <p id="reaction-explain" class="reaction-explain hidden"></p>
         <div id="reaction-cards"></div>
         <button id="btn-reaction-pass" class="primary">Let it happen</button>
         <p id="reaction-timer" class="tagline"></p>
@@ -236,7 +240,7 @@
     <div id="modal-headline" class="modal hidden">
       <div class="modal-box wide headline-box">
         <button id="headline-close" class="modal-close" aria-label="Close">✕</button>
-        <div class="headline-masthead">THE DAILY CONSTITUENCY</div>
+        <div class="headline-masthead">THE DAILY CONSTITUENCY <button class="info-btn" data-info="headline" aria-label="Explain Headlines">i</button></div>
         <h3 id="headline-title"></h3>
         <p id="headline-text" class="question"></p>
         <p id="headline-summary" class="headline-summary"></p>
@@ -246,10 +250,19 @@
     <!-- Game over -->
     <div id="modal-gameover" class="modal hidden">
       <div class="modal-box wide">
-        <h3>🗳 Election Results</h3>
+        <h3>🗳 Election Results <button class="info-btn" data-info="gameover" aria-label="Explain scoring">i</button></h3>
         <div id="results"></div>
         <div id="reckoning" class="hidden"></div>
         <button id="btn-again" class="primary hidden">Play Again</button>
+      </div>
+    </div>
+
+    <!-- ⓘ explainer: one sheet for every info button (content in help.js) -->
+    <div id="modal-info" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="info-title">
+      <div class="modal-box wide info-box">
+        <button id="info-close" class="modal-close" aria-label="Close">✕</button>
+        <h3 id="info-title"></h3>
+        <div id="info-body"></div>
       </div>
     </div>
 
@@ -257,6 +270,7 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="help.js"></script>
   <script src="client.js"></script>
 </body>
 </html>

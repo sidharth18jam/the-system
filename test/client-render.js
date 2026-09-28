@@ -35,6 +35,7 @@ function makeEl(id) {
     querySelectorAll() { return []; },
     querySelector() { return null; },
     getAttribute() { return null; },
+    addEventListener() {},
     appendChild() {},
     onclick: null,
     onchange: null,
@@ -50,6 +51,7 @@ const document = {
   },
   querySelectorAll() { return []; },
   createElement() { return makeEl('_tmp'); },
+  addEventListener() {},
 };
 
 // Socket stub: captures registered handlers; emit is a no-op we can inspect.
@@ -76,8 +78,10 @@ const sandbox = {
 };
 sandbox.globalThis = sandbox;
 
+// help.js loads first in index.html and defines the HELP global client.js reads.
+const help = fs.readFileSync(path.join(__dirname, '../public/help.js'), 'utf8');
 const code = fs.readFileSync(path.join(__dirname, '../public/client.js'), 'utf8');
-vm.runInNewContext(code, sandbox);
+vm.runInNewContext(`${help}\n;globalThis.HELP = HELP;\n${code}`, sandbox);
 
 // Drive real states through the gameState handler for a variety of phases.
 function seededRng(seed) {
@@ -281,5 +285,24 @@ ok('renders 2p POLICY with requirement chips on the 7-zone board');
 // GAME_OVER
 g2.endGame();
 h2(g2.activePlayer.id); ok('renders GAME_OVER');
+
+// ⓘ explanations: every info key the UI references must resolve to a real sheet.
+const html = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
+const keys = new Set();
+for (const m of html.matchAll(/data-info="([^"]+)"/g)) keys.add(m[1]);
+for (const m of code.matchAll(/infoBtn\('([a-z]+)'/g)) keys.add(m[1]);
+const gH = new SystemGame([{ id: 'a', name: 'A' }, { id: 'b', name: 'B' }, { id: 'c', name: 'C' }], seededRng(5), 'homeTurfs');
+const sH = { ...gH.serialize('a'), you: 'a' };
+handlers.gameState(sH);
+for (const e of sH.eliteCatalog) keys.add('elite:' + e.id);
+for (const t of sH.homeTurfs) keys.add('turf:' + t.zoneId);
+for (const k of keys) {
+  const t = sandbox.helpTopic(k);
+  if (!t || !t.title || !t.body) throw new Error(`ⓘ topic "${k}" has no explanation`);
+  for (const see of t.see || []) if (!sandbox.HELP[see]) throw new Error(`ⓘ "${k}" links to missing "${see}"`);
+  sandbox.openInfo(k);
+  if (els['info-title'].textContent !== t.title) throw new Error(`ⓘ "${k}" did not open`);
+}
+console.log(`  ✔ ${keys.size} ⓘ topics resolve and open (every elite and home turf included)`);
 
 console.log(`Client render harness: ${checks} states rendered without error.`);
