@@ -119,6 +119,8 @@ button.primary:hover { background: var(--ink-press); }
   background: var(--paper);
   color: var(--ink);
   border-bottom: 3px solid var(--ink);
+  /* stays pinned so "whose turn / what now" is visible while scrolling the market or log */
+  position: sticky; top: 0; z-index: 20;
 }
 #phase-banner.your-turn {
   background: var(--ink);
@@ -129,7 +131,10 @@ button.primary:hover { background: var(--ink-press); }
   display: grid; grid-template-columns: 240px 1fr 270px;
   gap: 14px; padding: 14px; max-width: 1400px; margin: 0 auto;
 }
-@media (max-width: 1000px) { #game-layout { grid-template-columns: 1fr; } }
+/* minmax(0, …) so a wide child (the phone's swipeable dossier strip) scrolls inside
+   its track instead of stretching the whole column past the screen. */
+@media (max-width: 1000px) { #game-layout { grid-template-columns: minmax(0, 1fr); } }
+#left-col, #board-wrap, #log-panel { min-width: 0; }
 
 /* Players panel — party dossiers */
 #left-col { display: flex; flex-direction: column; gap: 14px; }
@@ -141,7 +146,18 @@ button.primary:hover { background: var(--ink-press); }
   border-radius: 2px;
   padding: 10px 12px;
 }
-.player-card.active { box-shadow: 4px 4px 0 var(--ink); }
+.player-card { position: relative; }
+.player-card.active { box-shadow: 4px 4px 0 var(--ink); background: #f6f0de; }
+.turn-tag {
+  position: absolute; top: -9px; right: 8px;
+  background: var(--ink); color: var(--paper);
+  font-family: var(--mono); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 2px;
+}
+.score-row { font-size: 0.75rem; color: var(--muted); margin: -2px 0 6px; font-variant-numeric: tabular-nums; }
+.score-row b { color: var(--ink); font-weight: 800; }
+.res-total { font-size: 0.75rem; color: var(--muted); }
 .player-card .pname { font-weight: 800; margin-bottom: 6px; }
 .player-card .you-tag {
   font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
@@ -158,7 +174,7 @@ button.primary:hover { background: var(--ink-press); }
 .res-chip.media { background: var(--media); }
 .res-chip.trust { background: var(--trust); color: var(--ink-press); }
 .manifesto-row { margin-top: 6px; font-size: 0.75rem; color: var(--muted); }
-.cap-warn { color: var(--red); font-size: 0.75rem; font-weight: 700; }
+.cap-warn, .res-total.cap-warn { color: var(--red); font-size: 0.75rem; font-weight: 700; }
 
 /* ---------- Board — the constituency map ----------
    A surveyed electoral map. Center is a small capital diamond in the middle,
@@ -168,7 +184,9 @@ button.primary:hover { background: var(--ink-press); }
 #board {
   position: relative;
   aspect-ratio: 1;
-  max-width: 680px;
+  /* Sized to the viewport too, so on a laptop screen the market sits under the board
+     without scrolling between "pick a card" and "pick a constituency". */
+  max-width: min(680px, max(420px, calc(100vh - 250px)));
   margin: 0 auto;
   border: 3px solid var(--ink);
   background: var(--paper2);
@@ -777,6 +795,24 @@ button.primary:hover { background: var(--ink-press); }
 @media (max-width: 600px) {
   .home-box { width: 92vw; padding: 28px 20px; }
   #game-layout { padding: 10px; gap: 10px; }
+  #phase-banner { font-size: 0.78rem; letter-spacing: 1px; padding: 9px 8px; }
+  /* Dossiers become a swipeable strip, so the board is on screen without scrolling
+     past every player first. */
+  #players-panel {
+    flex-direction: row; overflow-x: auto; gap: 8px;
+    scroll-snap-type: x proximity; padding: 10px 2px 6px;
+  }
+  .player-card { flex: 0 0 min(250px, 78vw); scroll-snap-align: start; }
+  /* Three market cards across instead of two-and-an-orphan. */
+  #hq-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .voter-card { min-width: 0; padding: 8px 6px; }
+  #action-bar { flex-wrap: wrap; gap: 8px; }
+  #action-hint { flex-basis: 100%; }
+  /* Elite catalogue scrolls sideways instead of stacking a dozen cards. */
+  #elite-list { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; }
+  .elite-card { flex: 0 0 170px; }
+  #log-panel { max-height: 45vh; }
+  #log { max-height: 36vh; }
 }
 
 /* Lobby invite QR — white quiet zone so phone cameras can read it on the dark theme */

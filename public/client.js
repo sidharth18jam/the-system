@@ -80,6 +80,7 @@ let toughLovePay = { funds: 0, clout: 0, media: 0, trust: 0 }; // the "any 2" ha
 let buyDiscounts = { funds: 0, clout: 0, media: 0, trust: 0 }; // Helping Hands (Believer L3)
 let consBuyOpen = false; // conspiracy payment stepper is open
 let consBuyPay = { funds: 0, clout: 0, media: 0, trust: 0 };
+let lastStripActive = null; // active player last scrolled into view in the phone dossier strip
 let eliteExpanded = false; // show the full elite catalogue vs just what's relevant
 // Elite active-power flows (DD-22). eliteAs is set to an eliteId when the Maverick borrows.
 let eliteMode = null; // null | 'oracle' | 'insurgentFrom' | 'benefactorZone'
@@ -662,7 +663,10 @@ function renderBanner() {
     text = `${MODE_LABELS[state.mode] || state.mode} · ${text}`;
   }
   b.textContent = text;
-  b.classList.toggle('your-turn', isMyTurn() && state.phase !== 'GAME_OVER');
+  const myMove = isMyTurn() && state.phase !== 'GAME_OVER';
+  b.classList.toggle('your-turn', myMove);
+  // A backgrounded tab (or a phone on another app) still says when the table is waiting on you.
+  document.title = myMove ? '● Your turn — The System' : 'The System';
 }
 
 const MODE_LABELS = {
@@ -671,6 +675,12 @@ const MODE_LABELS = {
   twoPlayer: '⚔ HEAD TO HEAD',
   edgeOfChaos: '🔥 EDGE OF CHAOS',
 };
+
+// Colour alone can't carry the resource (red/green is the classic colour-blind pair),
+// so every chip names itself to hover and to screen readers.
+function resChip(r, n) {
+  return `<span class="res-chip ${r}" title="${n} ${RES_LABELS[r]}" aria-label="${n} ${RES_LABELS[r]}">${n}</span>`;
+}
 
 function renderPlayers() {
   // While targeting a player-aimed conspiracy, opponents' cards become click targets.
@@ -695,11 +705,19 @@ function renderPlayers() {
         (income ? `<span class="mini-badge" title="Passive ideologue income per policy answered">⚙ +${income}</span>` : '') +
         (p.benched ? `<span class="mini-badge" title="Voters benched by a Land Grab">🪑 ${p.benched}</span>` : '') +
         (p.iou && p.iou.debt > 0 ? `<span class="mini-badge iou" title="Owes an IOU">IOU ${p.iou.debt}</span>` : '');
+      // The scoreboard: constituencies held (solo or in coalition) and voters on the map.
+      const zonesHeld = state.zones.filter(
+        (z) => z.majorityOwner === p.id || (z.coalition && (z.coalition.a === p.id || z.coalition.b === p.id))
+      ).length;
+      const voters = state.zones.reduce((n, z) => n + z.slots.filter((o) => o === p.id).length, 0);
+      const cap = p.cap || state.resourceCap;
       return `<div class="player-card border-${p.color} ${active ? 'active' : ''} ${targetable ? 'targetable' : ''}" data-target-player="${targetable ? p.id : ''}">
+        ${active && state.phase !== 'GAME_OVER' ? '<div class="turn-tag">▶ On the clock</div>' : ''}
         <div class="pname">${esc(p.name)} ${p.id === myPid ? '<span class="you-tag">YOU</span>' : ''} ${badges}</div>
+        <div class="score-row"><span title="Constituencies held"><b>${zonesHeld}</b> zone${zonesHeld === 1 ? '' : 's'}</span> · <span title="Voters on the map"><b>${voters}</b> voter${voters === 1 ? '' : 's'}</span></div>
         <div class="res-row">
-          ${RES_KEYS.map((r) => `<span class="res-chip ${r}">${p.resources[r]}</span>`).join('')}
-          <span class="${p.resourceTotal > (p.cap || state.resourceCap) ? 'cap-warn' : ''}" style="font-size:0.75rem;color:var(--muted)">${p.resourceTotal}/${p.cap || state.resourceCap}</span>
+          ${RES_KEYS.map((r) => resChip(r, p.resources[r])).join('')}
+          <span class="res-total ${p.resourceTotal > cap ? 'cap-warn' : ''}" title="Resources held / cap">${p.resourceTotal}/${cap}</span>
         </div>
         <div class="manifesto-row">${manifesto}</div>
       </div>`;
@@ -711,6 +729,14 @@ function renderPlayers() {
       el.onclick = () => onPlayerTarget(el.dataset.targetPlayer);
     });
   }
+  // On phones the dossiers are a sideways strip: bring the new active player into view
+  // once per turn change (never on every render, so a player's own swipe isn't undone).
+  const panel = $('players-panel');
+  if (state.activePlayerId !== lastStripActive && panel.scrollWidth > panel.clientWidth) {
+    const card = panel.querySelector('.player-card.active');
+    if (card) panel.scrollLeft += card.getBoundingClientRect().left - panel.getBoundingClientRect().left;
+  }
+  lastStripActive = state.activePlayerId;
 }
 
 // A player card was clicked while targeting a conspiracy or elite.
@@ -1235,7 +1261,7 @@ function renderHq() {
       return `<div class="voter-card ${cls} ${sel}" data-hq="${i}">
         <div class="vcount">${c.voters} 🗳</div>
         <div class="vcost">${Object.entries(eff)
-          .map(([r, n]) => `<span class="res-chip ${r}">${n}</span>`)
+          .map(([r, n]) => resChip(r, n))
           .join('')}${discounted ? '<span class="discount-tag" title="Helping Hands discount">▾</span>' : ''}</div>
       </div>`;
     })
