@@ -123,8 +123,6 @@ button.primary:hover { background: var(--ink-press); }
   background: var(--paper);
   color: var(--ink);
   border-bottom: 3px solid var(--ink);
-  /* stays pinned so "whose turn / what now" is visible while scrolling the market or log */
-  position: sticky; top: 0; z-index: 20;
 }
 #phase-banner.your-turn {
   background: var(--ink);
@@ -919,7 +917,14 @@ button.primary:hover { background: var(--ink-press); }
 .info-btn:hover { opacity: 1; background: var(--paper2); color: var(--ink); }
 /* Bigger hit area on touch screens without a bigger glyph */
 @media (pointer: coarse) { .info-btn { position: relative; } .info-btn::after { content: ''; position: absolute; inset: -9px; } }
-#banner-row { display: flex; align-items: stretch; }
+/* The row (banner + its ⓘ) stays pinned so "whose turn / what now" is visible while
+   scrolling the market or log. Sticky must sit on the row: the banner alone is
+   confined to this row's box and would scroll away with it. */
+#banner-row {
+  display: flex; align-items: stretch;
+  position: sticky; top: 0; z-index: 20;
+  background: var(--paper);
+}
 #banner-row #phase-banner { flex: 1; }
 #banner-row > .info-btn { align-self: center; margin: 0 8px; width: 28px; height: 28px; font-size: 0.95rem; }
 #perks-bar > .info-btn:first-child { margin: 0 6px 0 0; }
