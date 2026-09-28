@@ -278,7 +278,10 @@ class SystemGame {
       this.ideologyDeck = shuffle(this.ideologyDiscard, this.rng);
       this.ideologyDiscard = [];
     }
-    return this.ideologyDeck.pop();
+    const card = this.ideologyDeck.pop();
+    // Coin-flip which answer shows as A, so position never gives away the ideology.
+    if (card && this.rng() < 0.5) return { ...card, option_a: card.option_b, option_b: card.option_a };
+    return card;
   }
 
   drawHeadlineCard() {
