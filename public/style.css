@@ -778,3 +778,6 @@ button.primary:hover { background: var(--ink-press); }
   .home-box { width: 92vw; padding: 28px 20px; }
   #game-layout { padding: 10px; gap: 10px; }
 }
+
+/* Lobby invite QR — white quiet zone so phone cameras can read it on the dark theme */
+.lobby-qr { display: block; margin: 12px auto; background: #fff; padding: 8px; border-radius: 6px; }

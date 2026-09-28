@@ -12,6 +12,13 @@ mirrors in-progress games to disk (`server/persistence.js`) so a restart doesn't
   `data/.rooms-state.json` (ephemeral on most platforms). For games that survive restarts,
   set `STATE_FILE` to a path on a **mounted volume** (see below).
 
+## Playing on phones
+Deploy once (Railway or Render below), then open the URL on any phone. The host taps
+**Create Room**; everyone else scans the lobby QR code or opens the shared invite link
+(`https://<your-app>/?room=CODE`), which fills in the room code. Seats survive screen locks and
+app switches: in-game indefinitely, in the lobby for 90 seconds, because the session token is
+kept in `localStorage`.
+
 ## Railway (simplest)
 1. Push this repo to GitHub.
 2. New Project → Deploy from repo. Railway detects the `Dockerfile` (or the Node buildpack via
