@@ -25,6 +25,7 @@
         <button id="btn-join">Join</button>
       </div>
       <p id="home-error" class="error"></p>
+      <button class="howto-btn" data-walkthrough>New here? <b>How to play</b> · 2 min</button>
     </div>
   </div>
 
@@ -46,6 +47,7 @@
       </div>
       <button id="btn-start" class="primary hidden">Start Game</button>
       <p id="lobby-wait" class="tagline">Waiting for host to start…</p>
+      <button class="howto-btn" data-walkthrough>First game? <b>How to play</b> while you wait</button>
     </div>
   </div>
 
@@ -269,6 +271,30 @@
   </div>
 
   <!-- Overlays live outside the screens so they show in the lobby as well as in-game. -->
+  <!-- First-time walkthrough: six cards, content in help.js (WALKTHROUGH) -->
+  <div id="modal-walkthrough" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="wt-title">
+    <div class="modal-box wide wt-box">
+      <button id="wt-close" class="modal-close" aria-label="Close">✕</button>
+      <div id="wt-kicker" class="wt-kicker"></div>
+      <h3 id="wt-title"></h3>
+      <div id="wt-body"></div>
+      <div class="wt-nav">
+        <button id="wt-back">Back</button>
+        <div id="wt-dots" class="wt-dots" aria-hidden="true"></div>
+        <button id="wt-next" class="primary">Next</button>
+      </div>
+    </div>
+  </div>
+  <!-- In-game coaching tip (content in help.js, COACH). client.js moves it in above whatever it explains. -->
+  <div id="coach" class="hidden" role="status" aria-live="polite">
+    <div id="coach-title" class="coach-title"></div>
+    <div id="coach-body" class="coach-body"></div>
+    <div class="coach-actions">
+      <button id="coach-ok" class="primary">Got it</button>
+      <button id="coach-more" class="link-btn">Full rule</button>
+      <button id="coach-off" class="link-btn">Turn off tips</button>
+    </div>
+  </div>
   <div id="toast" class="hidden"></div>
   <div id="notify-stack" aria-live="polite"></div>
   <div id="conn-status" class="hidden" role="status">Reconnecting… the table will catch up the moment you’re back.</div>

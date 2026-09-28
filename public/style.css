@@ -980,3 +980,61 @@ button.primary:hover { background: var(--ink-press); }
 .info-see { border-top: 1px dotted var(--line); padding-top: 8px; margin-top: 4px; font-size: 0.82rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
 .info-see .link-btn { padding: 2px 0; font-size: 0.82rem; text-decoration: underline; }
 @media (max-width: 600px) { .modal-box.info-box { padding: 22px 18px; } }
+
+/* ---------- First-time walkthrough (help.js WALKTHROUGH) ---------- */
+.howto-btn {
+  display: block; width: 100%; margin-top: 14px; padding: 8px 10px;
+  border: 1.5px dashed var(--line); background: transparent;
+  font-weight: 400; font-size: 0.85rem; color: var(--muted);
+}
+.howto-btn b { color: var(--ink); }
+.howto-btn:hover { border-color: var(--ink); color: var(--ink); background: transparent; }
+/* Never opened yet: make the way in obvious. */
+.howto-btn.fresh { border: 2px solid var(--yellow); background: color-mix(in srgb, var(--yellow) 18%, var(--paper)); color: var(--ink); }
+#modal-walkthrough { z-index: 95; }
+.wt-box { text-align: left; }
+.wt-box h3 { font-size: 1.4rem; padding-right: 36px; margin-bottom: 14px; }
+.wt-kicker {
+  font-family: var(--mono); font-weight: 700; font-size: 0.75rem;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--red); margin-bottom: 6px;
+}
+#wt-body { font-size: 0.95rem; line-height: 1.55; min-height: 190px; }
+#wt-body p { margin: 0 0 10px; }
+#wt-body ol { margin: 0 0 10px 20px; }
+#wt-body li { margin-bottom: 6px; }
+.wt-funds { color: var(--funds); }
+.wt-clout { color: var(--clout); }
+.wt-media { color: var(--media); }
+.wt-trust { color: #9a7200; } /* the spot yellow is too light to read as text on paper */
+.wt-ready { border-left: 3px solid var(--yellow); padding-left: 10px; font-weight: 600; }
+.wt-i {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border: 1.5px solid currentColor; border-radius: 50%;
+  font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700; font-size: 0.7rem;
+}
+.wt-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; }
+.wt-nav button.primary { width: auto; margin: 0; min-width: 120px; }
+.wt-nav .invisible { visibility: hidden; }
+.wt-dots { display: flex; gap: 6px; }
+.wt-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.wt-dots span.on { background: var(--ink); }
+
+/* ---------- Coach tips (help.js COACH) — placed in the flow right above their target ---------- */
+#coach {
+  margin: 0 0 12px; text-align: left;
+  background: var(--paper); color: var(--ink);
+  border: 2px solid var(--ink); border-top: 6px solid var(--yellow); border-radius: 2px;
+  box-shadow: 4px 4px 0 var(--ink-press);
+  padding: 12px 14px;
+  animation: deal 0.25s ease-out;
+}
+#modal-policy #coach { margin-bottom: 14px; }
+.coach-title { font-family: var(--display); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.coach-body { font-size: 0.86rem; line-height: 1.45; }
+.coach-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 4px; margin-top: 10px; }
+.coach-actions button.primary { width: auto; margin: 0 6px 0 0; padding: 6px 14px; font-size: 0.8rem; }
+.coach-actions .link-btn { margin-left: 8px; }
+.coach-spot { outline: 3px solid var(--yellow); outline-offset: 3px; animation: coach-pulse 1.6s ease-in-out infinite; }
+@keyframes coach-pulse { 50% { outline-color: color-mix(in srgb, var(--yellow) 35%, transparent); } }
+@media (prefers-reduced-motion: reduce) { #coach, .coach-spot { animation: none; } }
+@media (max-width: 600px) and (min-height: 501px) { #wt-body { min-height: 0; } }

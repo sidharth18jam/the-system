@@ -115,6 +115,7 @@ function show(screen) {
   ['screen-home', 'screen-lobby', 'screen-game'].forEach((s) =>
     $(s).classList.toggle('hidden', s !== screen)
   );
+  if (screen !== 'screen-game') $('coach').classList.add('hidden');
 }
 function toast(msg) {
   const t = $('toast');
@@ -441,11 +442,13 @@ function closeInfo() {
 document.addEventListener(
   'click',
   (ev) => {
+    const wt = ev.target.closest && ev.target.closest('[data-walkthrough]');
     const btn = ev.target.closest && ev.target.closest('[data-info]');
-    if (!btn) return;
+    if (!wt && !btn) return;
     ev.preventDefault();
     ev.stopPropagation();
-    openInfo(btn.dataset.info);
+    if (wt) openWalkthrough();
+    else openInfo(btn.dataset.info);
   },
   true
 );
@@ -454,8 +457,122 @@ $('modal-info').addEventListener('click', (ev) => {
   if (ev.target === $('modal-info')) closeInfo();
 });
 document.addEventListener('keydown', (ev) => {
-  if (ev.key === 'Escape') closeInfo();
+  const wtOpen = !$('modal-walkthrough').classList.contains('hidden');
+  if (ev.key === 'Escape') {
+    closeInfo();
+    if (wtOpen) closeWalkthrough();
+  } else if (wtOpen && ev.key === 'ArrowRight') stepWalkthrough(1);
+  else if (wtOpen && ev.key === 'ArrowLeft') stepWalkthrough(-1);
 });
+
+// ---------- first-time walkthrough & coaching ----------
+// The walkthrough is the whole game in six cards (help.js WALKTHROUGH), opened from any
+// [data-walkthrough] button. Coach tips point at the screen the first time a player meets
+// each moment of play (help.js COACH). Both are remembered per browser.
+const WALKTHROUGH_KEY = 'system_walkthrough';
+const COACH_KEY = 'system_coach';
+const tapWords = (html) =>
+  html.replace(/\{tap\}/g, TAP).replace(/\{Tap\}/g, TAP[0].toUpperCase() + TAP.slice(1));
+let wtStep = 0;
+
+function renderWalkthrough() {
+  const card = WALKTHROUGH[wtStep];
+  $('wt-kicker').textContent = `${wtStep + 1} / ${WALKTHROUGH.length} · ${card.kicker}`;
+  $('wt-title').textContent = card.title;
+  $('wt-body').innerHTML = tapWords(card.body);
+  $('wt-dots').innerHTML = WALKTHROUGH.map((_, i) => `<span${i === wtStep ? ' class="on"' : ''}></span>`).join('');
+  $('wt-back').classList.toggle('invisible', wtStep === 0);
+  $('wt-next').textContent = wtStep === WALKTHROUGH.length - 1 ? 'Let’s play' : 'Next';
+}
+function openWalkthrough() {
+  wtStep = 0;
+  closeInfo();
+  renderWalkthrough();
+  $('modal-walkthrough').classList.remove('hidden');
+}
+function closeWalkthrough() {
+  $('modal-walkthrough').classList.add('hidden');
+  store.set(WALKTHROUGH_KEY, 'seen');
+  markHowtoSeen();
+}
+function stepWalkthrough(d) {
+  const next = wtStep + d;
+  if (next >= WALKTHROUGH.length) return closeWalkthrough();
+  if (next < 0) return;
+  wtStep = next;
+  renderWalkthrough();
+}
+// Until the walkthrough has been seen once, its entry points stand out.
+function markHowtoSeen() {
+  const seen = store.get(WALKTHROUGH_KEY) === 'seen';
+  document.querySelectorAll('.howto-btn').forEach((b) => b.classList.toggle('fresh', !seen));
+}
+markHowtoSeen();
+$('wt-next').onclick = () => stepWalkthrough(1);
+$('wt-back').onclick = () => stepWalkthrough(-1);
+$('wt-close').onclick = closeWalkthrough;
+$('modal-walkthrough').addEventListener('click', (ev) => {
+  if (ev.target === $('modal-walkthrough')) closeWalkthrough();
+});
+
+// Coach tips: at most one on screen, for the moment the player is in right now. A tip
+// counts as seen once dismissed or once its moment has passed with it showing.
+const coachSeen = new Set(
+  (() => {
+    try {
+      return JSON.parse(store.get(COACH_KEY)) || [];
+    } catch {
+      return [];
+    }
+  })()
+);
+let coachShown = null; // moment whose tip is on screen
+let coachSpot = null; // element the tip is pointing at
+function saveCoach() {
+  store.set(COACH_KEY, JSON.stringify([...coachSeen]));
+}
+function coachMoment() {
+  if (!me()) return null;
+  if (!isMyTurn()) return ['POLICY', 'ACTION'].includes(state.phase) ? 'watch' : null;
+  if (state.phase === 'POLICY' && state.currentCard) return 'policy';
+  if (state.phase === 'ACTION') return 'action';
+  if (state.phase === 'GERRYMANDER') return 'gerrymander';
+  return null;
+}
+function renderCoach() {
+  const moment = coachMoment();
+  if (coachShown && moment !== coachShown) {
+    coachSeen.add(coachShown);
+    saveCoach();
+  }
+  const tip = moment && !coachSeen.has('off') && !coachSeen.has(moment) ? COACH[moment] : null;
+  coachShown = tip ? moment : null;
+  const spot = tip ? $(tip.target) : null;
+  if (spot !== coachSpot) {
+    if (coachSpot) coachSpot.classList.remove('coach-spot');
+    if (spot) spot.classList.add('coach-spot');
+    // The tip sits in the flow directly above what it explains, so it never covers it.
+    if (spot && spot.parentNode) spot.parentNode.insertBefore($('coach'), spot);
+    if (spot && spot.scrollIntoView) spot.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    coachSpot = spot;
+  }
+  $('coach').classList.toggle('hidden', !tip);
+  if (!tip) return;
+  const active = playerById(state.activePlayerId);
+  $('coach-title').textContent = tip.title;
+  $('coach-body').innerHTML = tapWords(tip.body).replace('{active}', esc(active ? active.name : 'another player'));
+}
+$('coach-ok').onclick = () => {
+  if (coachShown) coachSeen.add(coachShown);
+  saveCoach();
+  renderCoach();
+};
+$('coach-more').onclick = () => coachShown && openInfo(COACH[coachShown].more);
+$('coach-off').onclick = () => {
+  coachSeen.add('off');
+  saveCoach();
+  renderCoach();
+};
 
 // ---------- home ----------
 $('btn-join').onclick = () => {
@@ -685,6 +802,7 @@ const PANELS = [
   renderRequirementPanel,
   renderLog,
   renderModals,
+  renderCoach,
 ];
 const renderFailures = []; // read by the headless test harness
 function render() {

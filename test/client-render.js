@@ -115,8 +115,16 @@ function ok(label) { checks++; console.log('  ✔ ' + label); }
 // SETUP_PICK
 feed('a'); feed('b'); ok('renders SETUP_PICK');
 for (const p of g.players) while (p.startingPicksRemaining > 0) g.pickStartingResource(p.id, 'funds');
-// POLICY
-feed('a'); feed('b'); ok('renders POLICY (active + spectator)');
+// POLICY — a first-timer's own question and a bystander's view each get their coach tip.
+const coachTitle = () => (els.coach.classList.contains('hidden') ? null : els['coach-title'].textContent);
+const firstBystander = g.players.find((p) => p.id !== g.activePlayer.id).id;
+feed(g.activePlayer.id);
+if (coachTitle() !== 'Your first question') throw new Error(`policy coach tip missing: ${coachTitle()}`);
+feed(firstBystander);
+if (coachTitle() !== 'Not your turn — still your game') throw new Error(`watch coach tip missing: ${coachTitle()}`);
+feed(g.activePlayer.id);
+if (coachTitle() !== null) throw new Error('policy coach tip repeated after its moment passed');
+ok('renders POLICY (active + spectator) with first-time coach tips');
 g.answerPolicy(g.activePlayer.id, 'a');
 // ACTION with a conspiracy in hand + peek + IOU-less
 const active = g.activePlayer;
