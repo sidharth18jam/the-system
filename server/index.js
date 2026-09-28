@@ -23,7 +23,9 @@ app.get('/qr.svg', async (req, res) => {
 });
 
 const server = http.createServer(app);
-const io = new Server(server);
+// Tighter heartbeat than the 25s+20s default: a phone that sleeps or drops Wi-Fi is noticed
+// (and reconnects, which re-pushes state) in ~20s instead of ~45s.
+const io = new Server(server, { pingInterval: 10000, pingTimeout: 10000 });
 
 const PORT = process.env.PORT || 3000;
 const LOBBY_GRACE_MS = 90 * 1000; // how long a dropped lobby player keeps their seat
@@ -66,16 +68,18 @@ function lobbyState(room) {
 // Per-socket broadcast so each client learns its own identity without leaking tokens.
 // In-game state is serialized per viewer so hidden info (conspiracy hands, peeks)
 // only reaches its owner.
+function sendState(room, p, lobby) {
+  if (!p.connected) return;
+  const s = io.sockets.sockets.get(p.socketId);
+  if (!s) return;
+  const base = room.game ? room.game.serialize(p.pid) : lobby || lobbyState(room);
+  const payload = { ...base, you: p.pid, youAreHost: p.token === room.hostToken };
+  s.emit(room.game ? 'gameState' : 'lobbyState', payload);
+}
+
 function broadcast(room) {
   const lobby = room.game ? null : lobbyState(room);
-  for (const p of room.players.values()) {
-    if (!p.connected) continue;
-    const s = io.sockets.sockets.get(p.socketId);
-    if (!s) continue;
-    const base = room.game ? room.game.serialize(p.pid) : lobby;
-    const payload = { ...base, you: p.pid, youAreHost: p.token === room.hostToken };
-    s.emit(room.game ? 'gameState' : 'lobbyState', payload);
-  }
+  for (const p of room.players.values()) sendState(room, p, lobby);
   if (room.game) armTimers(room);
   persist(); // mirror the change to disk (debounced)
 }
@@ -353,6 +357,13 @@ io.on('connection', (socket) => {
   socket.on('discardResources', ({ discards }) =>
     gameAction((g, pid) => g.discardResources(pid, discards))
   );
+
+  // A client coming back to the foreground asks for the current state instead of trusting
+  // that it saw every push while the tab was frozen. Answers only the asker.
+  socket.on('resync', () => {
+    const p = myPlayer();
+    if (p && p.socketId === socket.id) sendState(myRoom, p);
+  });
 
   socket.on('playAgain', () => {
     if (!myRoom || myToken !== myRoom.hostToken) return fail('Only the host can restart');

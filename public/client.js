@@ -67,7 +67,6 @@ let coalitionMine = 1; // my peg share in the proposed split (DD-23)
 let setupBidAmount = 0; // 2 Player secret first-move bid (DD-26)
 let reqSel = null; // requirement card id mid-placement: awaiting a zone click
 let conspiracyPlay = null; // { card } mid-targeting: awaiting a target click
-let conspiracySeen = 0; // last lastConspiracy.key surfaced as a toast
 const consExpanded = new Set(); // conspiracy card ids whose explanation is open (survives re-render)
 let auctionBid = 0; // my in-progress bid amount in the auction modal
 let auctionKey = null; // identity of the current auction, to reset my bid input
@@ -123,6 +122,179 @@ function toast(msg) {
   t.classList.remove('hidden');
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.add('hidden'), 3000);
+}
+
+// ---------- notifications ----------
+// Every gameState push is diffed against the previous one to find what needs this player's
+// attention. Each event shows as a card in the corner; while the tab is in the background
+// it also counts in the tab title and, for urgent ones, raises a system notification (if
+// the player turned them on) and a short vibration.
+const BASE_TITLE = document.title || 'The System';
+const NOTIFY_KEY = 'system_notify';
+let notices = []; // { id, text, urgent, ttl, timer } on screen, newest last
+let noticeId = 0;
+let unseen = 0; // attention events since the tab was last visible
+
+const isHidden = () => !!document.hidden;
+const systemNotifySupported = () => typeof window.Notification === 'function';
+const systemNotifyOn = () =>
+  systemNotifySupported() && window.Notification.permission === 'granted' && store.get(NOTIFY_KEY) !== 'off';
+
+function notify(text, urgent) {
+  const n = { id: ++noticeId, text, urgent: !!urgent, ttl: urgent ? 9000 : 5000, timer: null };
+  notices.push(n);
+  if (notices.length > 4) notices.shift();
+  // A card that expired while nobody was looking is a missed alert: start the clock on return.
+  if (!isHidden()) armNotice(n);
+  renderNotices();
+  if (!isHidden()) return;
+  unseen++;
+  updateTitle();
+  if (!urgent) return;
+  if (systemNotifyOn()) {
+    try {
+      const sys = new window.Notification('The System', { body: text, tag: 'the-system' });
+      sys.onclick = () => {
+        window.focus();
+        sys.close();
+      };
+    } catch {
+      /* e.g. Android Chrome only allows notifications from a service worker */
+    }
+  }
+  try {
+    if (navigator.vibrate) navigator.vibrate(150);
+  } catch {
+    /* unsupported */
+  }
+}
+function armNotice(n) {
+  if (!n.timer) n.timer = setTimeout(() => dismissNotice(n.id), n.ttl);
+}
+function dismissNotice(id) {
+  notices = notices.filter((n) => n.id !== id);
+  renderNotices();
+}
+function renderNotices() {
+  $('notify-stack').innerHTML = notices
+    .map((n) => `<div class="notice${n.urgent ? ' urgent' : ''}" data-notice="${n.id}">${esc(n.text)}</div>`)
+    .join('');
+}
+$('notify-stack').onclick = (ev) => {
+  const card = ev.target.closest && ev.target.closest('[data-notice]');
+  if (card) dismissNotice(Number(card.dataset.notice));
+};
+function clearAttention() {
+  unseen = 0;
+  updateTitle();
+  notices.forEach(armNotice);
+}
+// A backgrounded tab (or a phone on another app) still says when the table is waiting on
+// you, and how much happened while you were away.
+function updateTitle() {
+  const myMove = state && state.phase !== 'GAME_OVER' && isMyTurn();
+  const base = myMove ? `● Your turn — ${BASE_TITLE}` : BASE_TITLE;
+  document.title = unseen ? `(${unseen}) ${base}` : base;
+}
+
+// 🔔 in the banner: opt in to system notifications for when the tab is in the background.
+function renderNotifyBtn() {
+  const b = $('btn-notify');
+  if (!systemNotifySupported()) return b.classList.add('hidden');
+  b.classList.remove('hidden');
+  const on = systemNotifyOn();
+  b.textContent = on ? '🔔' : '🔕';
+  b.title = on
+    ? 'Background alerts on — click to turn off'
+    : 'Get a system notification when it’s your move and this tab is in the background';
+}
+$('btn-notify').onclick = async () => {
+  if (systemNotifyOn()) {
+    store.set(NOTIFY_KEY, 'off');
+  } else {
+    store.set(NOTIFY_KEY, 'on');
+    try {
+      if (window.Notification.permission === 'default') await window.Notification.requestPermission();
+    } catch {
+      /* old Safari: callback-only API */
+    }
+    if (window.Notification.permission === 'denied') {
+      toast('Notifications are blocked for this site — allow them in your browser settings.');
+    }
+  }
+  renderNotifyBtn();
+};
+renderNotifyBtn();
+
+const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// Log lines that are about this player but come from someone else's action. Lines that
+// already have their own structured event (offers, conspiracies, headlines) are skipped.
+function logLineAboutMe(line, myName) {
+  if (!new RegExp(`(^|[^\\w])${escRe(myName)}($|[^\\w])`).test(line)) return false;
+  if (/^(🎭|📰|🗞)/.test(line)) return false;
+  if (/ proposed a (trade|coalition) |awaiting their response/.test(line)) return false;
+  // "Alice buys…" is Alice's own doing; "Alice's majority… is broken" is done to her.
+  const subject = line.replace(/^[^\p{L}\p{N}]+/u, '');
+  return !subject.startsWith(myName) || subject.startsWith(`${myName}'s majority`);
+}
+
+// What changed between two states of the same viewer that this viewer should know about.
+function detectEvents(prev, s) {
+  const out = [];
+  const you = s.you;
+  const nameOf = (id) => (s.players.find((p) => p.id === id) || { name: 'Someone' }).name;
+  const my = s.players.find((p) => p.id === you);
+  const add = (text, urgent) => out.push({ text, urgent });
+
+  if (s.phase === 'GAME_OVER') {
+    if (prev.phase !== 'GAME_OVER') {
+      const w = (s.winnerIds || []).map(nameOf).join(' & ');
+      add(`🏁 Game over${w ? ` — ${w} ${s.winnerIds.length > 1 ? 'win' : 'wins'}` : ''}.`, true);
+    }
+    return out;
+  }
+  if (s.activePlayerId === you && prev.activePlayerId !== you) add('🗳 Your turn.', true);
+  if (s.reqPlacerId === you && prev.reqPlacerId !== you) add('📜 Your turn to pin a zone requirement.', true);
+  if (s.phase === 'DISCARD' && prev.phase !== 'DISCARD' && s.activePlayerId === you) {
+    add(`🗑 Over the cap — discard ${s.discardRequired} before you act.`, true);
+  }
+  const r = s.pendingReaction;
+  const pr = prev.pendingReaction;
+  if (r && r.victimId === you && !(pr && pr.victimId === you && pr.conspiracyTitle === r.conspiracyTitle)) {
+    add(`🎭 ${r.byName} is playing ${r.conspiracyTitle} on you — respond now.`, true);
+  }
+  const seenTrades = new Set((prev.tradeOffers || []).map((o) => o.id));
+  for (const o of s.tradeOffers || []) {
+    if (o.to === you && !seenTrades.has(o.id)) add(`🤝 ${nameOf(o.from)} offers you a trade.`, true);
+  }
+  const seenCoalitions = new Set((prev.coalitionOffers || []).map((o) => o.id));
+  for (const o of s.coalitionOffers || []) {
+    if (o.to !== you || seenCoalitions.has(o.id)) continue;
+    const z = s.zones.find((zz) => zz.id === o.zoneId);
+    add(`🤝 ${nameOf(o.from)} proposes a coalition${z ? ` in ${z.name}` : ''}.`, true);
+  }
+  if (s.auction && !prev.auction) {
+    add(`🔨 Auction open${s.auction.card && s.auction.card.voters ? ` — a ${s.auction.card.voters}-voter bloc` : ''}. Place your bids.`, true);
+  }
+  if (s.auctionPlacement && s.auctionPlacement.winnerId === you && !prev.auctionPlacement) {
+    add('🔨 You won the auction — seat your bloc.', true);
+  }
+  if (s.finalTurnsRemaining != null && prev.finalTurnsRemaining == null) {
+    add('⏳ The board is full — everyone gets one final turn.', true);
+  }
+  const h = s.lastHeadline;
+  if (h && h.playerId === you && (!prev.lastHeadline || prev.lastHeadline.key !== h.key)) {
+    add(`📰 Headline hits you: ${h.title}`, true);
+  }
+  const c = s.lastConspiracy;
+  if (c && c.byId !== you && (!prev.lastConspiracy || prev.lastConspiracy.key !== c.key)) {
+    add(`🎭 ${c.summary}`, !!my && new RegExp(`(^|[^\\w])${escRe(my.name)}($|[^\\w])`).test(c.summary));
+  }
+  const fresh = Math.min((s.logSeq || 0) - (prev.logSeq || 0), s.log.length);
+  if (my && fresh > 0) {
+    for (const line of s.log.slice(-fresh)) if (logLineAboutMe(line, my.name)) add(line, false);
+  }
+  return out;
 }
 
 // ---------- ⓘ explanations ----------
@@ -307,6 +479,7 @@ function saveSession(code, token) {
 
 // Attempt reconnect on load
 socket.on('connect', () => {
+  $('conn-status').classList.add('hidden');
   if (myToken && myRoomCode) {
     socket.emit('joinRoom', { code: myRoomCode, token: myToken }, (res) => {
       if (!res || !res.ok) {
@@ -320,6 +493,32 @@ socket.on('connect', () => {
 });
 
 socket.on('errorMsg', toast);
+
+// ---------- staying live ----------
+// The server pushes state on every change; the risk is a client that stops hearing it.
+// Phones freeze background tabs and restore pages from cache with a dead socket, so on
+// every return to the page: reconnect if the socket is down (rejoining re-sends state),
+// otherwise ask for a fresh copy in case a push was missed while frozen.
+socket.on('disconnect', () => {
+  // Only surface drops that last — a sub-second blip reconnects on its own.
+  setTimeout(() => {
+    if (myToken && !socket.connected) $('conn-status').classList.remove('hidden');
+  }, 1500);
+});
+function resume() {
+  if (!myToken) return;
+  if (!socket.connected) socket.connect();
+  else socket.emit('resync');
+}
+document.addEventListener('visibilitychange', () => {
+  if (isHidden()) return;
+  clearAttention();
+  resume();
+});
+if (typeof window.addEventListener === 'function') {
+  window.addEventListener('pageshow', (ev) => ev.persisted && resume()); // back/forward cache
+  window.addEventListener('online', resume);
+}
 
 // Invite links (?room=ABCD) prefill the join code; the last-used name is remembered.
 {
@@ -387,6 +586,16 @@ socket.on('lobbyState', (lobby) => {
 
 // ---------- game state ----------
 socket.on('gameState', (s) => {
+  // Diff against the previous state for the same seat; a first state (page load, rejoin)
+  // is only a baseline, so a reconnect doesn't replay old news.
+  const prev = state && state.you === s.you ? state : null;
+  const events = prev ? detectEvents(prev, s) : [];
+  if (prev && (s.logSeq || 0) > (prev.logSeq || 0)) {
+    const now = Date.now();
+    for (let q = Math.max(prev.logSeq || 0, s.logSeq - s.log.length) + 1; q <= s.logSeq; q++) logArrivals.set(q, now);
+    for (const q of logArrivals.keys()) if (q <= s.logSeq - s.log.length) logArrivals.delete(q);
+    setTimeout(() => state && renderLog(), LOG_FRESH_MS + 50);
+  }
   const key = s.currentCard ? `${s.turnIndex}:${s.currentCard.id}` : null;
   if (key && key !== policyKey) {
     policyKey = key;
@@ -411,11 +620,6 @@ socket.on('gameState', (s) => {
     }, 8000);
   }
   if (s.phase !== 'GERRYMANDER' || s.activePlayerId !== s.you) gerrySel = null;
-  // A conspiracy played by anyone surfaces as a toast to the whole table.
-  if (s.lastConspiracy && s.lastConspiracy.key !== conspiracySeen) {
-    conspiracySeen = s.lastConspiracy.key;
-    if (s.lastConspiracy.byId !== s.you) toast('🎭 ' + s.lastConspiracy.summary);
-  }
   // Cancel an in-progress conspiracy targeting only if I may no longer play one.
   // Non-active players keep their targeting through the POLICY window (DD-21).
   if (!s.youMayPlayConspiracy) conspiracyPlay = null;
@@ -440,6 +644,7 @@ socket.on('gameState', (s) => {
   myIsHost = !!s.youAreHost;
   show('screen-game');
   render();
+  events.forEach((e) => notify(e.text, e.urgent));
   // Phones: when my action phase opens, bring the board up once — that's where the turn is played.
   const actionKey = isMyTurn() && s.phase === 'ACTION' ? s.turnIndex : null;
   if (actionKey !== null && actionKey !== lastActionScroll && isPhone()) {
@@ -464,20 +669,36 @@ function esc(str) {
 }
 
 // ---------- render ----------
+// Each panel renders independently: a bug in one must not leave the log, the modals or
+// anything after it frozen on a stale state until the player reloads.
+const PANELS = [
+  renderBanner,
+  renderPlayers,
+  renderBoard,
+  renderPolicyOutcome,
+  renderHq,
+  renderPerksBar,
+  renderConspiracies,
+  renderElites,
+  renderTradeOffers,
+  renderObjective,
+  renderRequirementPanel,
+  renderLog,
+  renderModals,
+];
+const renderFailures = []; // read by the headless test harness
 function render() {
-  renderBanner();
-  renderPlayers();
-  renderBoard();
-  renderPolicyOutcome();
-  renderHq();
-  renderPerksBar();
-  renderConspiracies();
-  renderElites();
-  renderTradeOffers();
-  renderObjective();
-  renderRequirementPanel();
-  renderLog();
-  renderModals();
+  for (const panel of PANELS) {
+    try {
+      panel();
+    } catch (e) {
+      renderFailures.push({ panel: panel.name, error: e });
+      console.error(`${panel.name} failed`, e);
+    }
+  }
+}
+function takeRenderFailures() {
+  return renderFailures.splice(0);
 }
 
 // ---------- ideologue powers bar (L3/L5, DD-21) ----------
@@ -839,7 +1060,7 @@ function renderBanner() {
   const myMove = isMyTurn() && state.phase !== 'GAME_OVER';
   b.classList.toggle('your-turn', myMove);
   // A backgrounded tab (or a phone on another app) still says when the table is waiting on you.
-  document.title = myMove ? '● Your turn — The System' : 'The System';
+  updateTitle();
 }
 
 const MODE_LABELS = {
@@ -2205,8 +2426,17 @@ function wireEliteControls() {
   });
 }
 
+const LOG_FRESH_MS = 6000; // how long a just-arrived log line stays highlighted
+const logArrivals = new Map(); // logSeq of a line → when it reached this client
 function renderLog() {
-  $('log').innerHTML = state.log.slice().reverse().map((l) => `<p>${esc(l)}</p>`).join('');
+  const seq = state.logSeq || 0;
+  const n = state.log.length;
+  const now = Date.now();
+  const fresh = (i) => now - (logArrivals.get(seq - (n - 1 - i)) || 0) < LOG_FRESH_MS;
+  $('log').innerHTML = state.log
+    .map((l, i) => `<p${fresh(i) ? ' class="fresh"' : ''}>${esc(l)}</p>`)
+    .reverse()
+    .join('');
 }
 
 // ---------- modals ----------

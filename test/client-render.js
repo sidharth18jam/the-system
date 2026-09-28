@@ -83,6 +83,15 @@ const help = fs.readFileSync(path.join(__dirname, '../public/help.js'), 'utf8');
 const code = fs.readFileSync(path.join(__dirname, '../public/client.js'), 'utf8');
 vm.runInNewContext(`${help}\n;globalThis.HELP = HELP;\n${code}`, sandbox);
 
+// render() isolates panels so one bug can't freeze the rest in production; the harness
+// still has to fail loudly on any panel that threw.
+const rawGameState = handlers.gameState;
+handlers.gameState = (s) => {
+  rawGameState(s);
+  const failed = sandbox.takeRenderFailures();
+  if (failed.length) throw failed[0].error;
+};
+
 // Drive real states through the gameState handler for a variety of phases.
 function seededRng(seed) {
   let a = seed >>> 0;
@@ -304,5 +313,55 @@ for (const k of keys) {
   if (els['info-title'].textContent !== t.title) throw new Error(`ⓘ "${k}" did not open`);
 }
 console.log(`  ✔ ${keys.size} ⓘ topics resolve and open (every elite and home turf included)`);
+
+// Notifications: consecutive states for one seat are diffed into attention events.
+{
+  const gN = new SystemGame(
+    [{ id: 'a', name: 'Alice' }, { id: 'b', name: 'Bob' }, { id: 'c', name: 'Cy' }],
+    seededRng(43)
+  );
+  const view = (vid) => ({ ...gN.serialize(vid), you: vid });
+  const texts = (prev, next) => sandbox.detectEvents(prev, next).map((e) => e.text);
+  const expect = (cond, label) => {
+    if (!cond) throw new Error('notify: ' + label);
+    ok('notify: ' + label);
+  };
+  for (const p of gN.players) while (p.startingPicksRemaining > 0) gN.pickStartingResource(p.id, 'funds');
+  const first = gN.activePlayer;
+  const other = gN.players.find((p) => p.id !== first.id);
+  const third = gN.players.find((p) => p.id !== first.id && p.id !== other.id);
+
+  let before = view(other.id);
+  gN.answerPolicy(first.id, 'a');
+  if (gN.phase === 'DISCARD') gN.discardResources(first.id, { funds: gN.discardRequired });
+  first.resources = { funds: 3, clout: 3, media: 3, trust: 3 };
+  other.resources = { funds: 3, clout: 3, media: 3, trust: 3 };
+  gN.proposeTrade(first.id, other.id, { funds: 1 }, { clout: 1 }, [], []);
+  let after = view(other.id);
+  expect(texts(before, after).some((t) => t.includes(`${first.name} offers you a trade`)), 'trade offer pings its addressee');
+  expect(!texts(view(third.id), view(third.id)).length, 'no change, no events');
+  expect(
+    !sandbox.detectEvents(before, after).some((e) => e.text.includes('proposed a trade')),
+    'offer is not repeated from the log'
+  );
+
+  before = view(first.id);
+  const deciderBefore = view(other.id);
+  gN.respondTrade(other.id, gN.tradeOffers[0].id, false);
+  after = view(first.id);
+  expect(texts(before, after).some((t) => t.includes('declined')), 'declined trade reaches the proposer via the log');
+  expect(!texts(deciderBefore, view(other.id)).length, 'decliner is not told about their own action');
+
+  before = view(other.id);
+  gN.endTurn(first.id);
+  if (gN.phase === 'GERRYMANDER') gN.skipGerrymander(first.id);
+  after = view(gN.activePlayer.id);
+  const nextUp = gN.activePlayer.id;
+  expect(
+    texts({ ...before, you: nextUp, activePlayerId: first.id }, after).includes('🗳 Your turn.'),
+    'turn change pings the new active player'
+  );
+  expect(after.logSeq > before.logSeq, 'server exposes a growing logSeq');
+}
 
 console.log(`Client render harness: ${checks} states rendered without error.`);

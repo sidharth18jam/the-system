@@ -253,6 +253,9 @@ class SystemGame {
   // ---------- helpers ----------
 
   addLog(msg) {
+    // Monotonic count of every line ever logged, so clients can tell exactly which lines
+    // in the trimmed window are new since their last state (notifications, highlights).
+    this.logSeq = (this.logSeq || 0) + 1;
     this.log.push(msg);
     if (this.log.length > 100) this.log.shift();
   }
@@ -2362,6 +2365,7 @@ class SystemGame {
       voterDeckCount: this.voterDeck.length,
       winnerIds: this.winnerIds,
       log: this.log.slice(-30),
+      logSeq: this.logSeq || 0,
       resourceCap: RESOURCE_CAP,
     };
   }

@@ -90,6 +90,20 @@ async function main() {
     if (!j.ok) throw new Error('join failed: ' + j.error);
   }
 
+  // A returning client's resync gets the current state, and only that client does.
+  await new Promise((r) => setTimeout(r, 300)); // joins ack before they broadcast; let those land
+  const got = { a: 0, b: 0 };
+  const onA = () => got.a++;
+  const onB = () => got.b++;
+  a.on('lobbyState', onA);
+  b.on('lobbyState', onB);
+  a.emit('resync');
+  await new Promise((r) => setTimeout(r, 300));
+  a.off('lobbyState', onA);
+  b.off('lobbyState', onB);
+  if (got.a !== 1 || got.b !== 0) throw new Error(`resync must answer only the asker (a=${got.a}, b=${got.b})`);
+  console.log('resync answers only the asker');
+
   let done = false;
   let turnCount = 0;
 
