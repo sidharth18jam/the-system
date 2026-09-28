@@ -51,7 +51,7 @@
 
   <!-- ============ GAME ============ -->
   <div id="screen-game" class="screen hidden">
-    <div id="banner-row"><div id="phase-banner"></div><button class="info-btn" data-info="basics" aria-label="Explain how to win">i</button></div>
+    <div id="banner-row"><div id="phase-banner"></div><button id="btn-notify" class="notify-btn hidden" aria-label="Background alerts"></button><button class="info-btn" data-info="basics" aria-label="Explain how to win">i</button></div>
 
     <div id="game-layout">
       <!-- Left: players + open trade offers -->
@@ -266,8 +266,12 @@
       </div>
     </div>
 
-    <div id="toast" class="hidden"></div>
   </div>
+
+  <!-- Overlays live outside the screens so they show in the lobby as well as in-game. -->
+  <div id="toast" class="hidden"></div>
+  <div id="notify-stack" aria-live="polite"></div>
+  <div id="conn-status" class="hidden" role="status">Reconnecting… the table will catch up the moment you’re back.</div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="help.js"></script>

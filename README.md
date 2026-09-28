@@ -78,7 +78,7 @@ built and covered by automated tests.
 **What's left before this is a polished product:**
 - **Edge of Chaos mode** — not yet built.
 - **In-game chat** — group + private one-to-one channels alongside the game log.
-- **UX overhaul** — event notifications, elaborate player mats, in-app rules explanations,
+- **UX overhaul** — elaborate player mats, in-app rules explanations,
   visible timers, board change highlights — aimed at players who don't already know the
   game by heart.
 - **Art** — all card content (150 policy cards, 36 headlines, 24 conspiracies, 13 elites,

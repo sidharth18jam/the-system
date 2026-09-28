@@ -793,6 +793,39 @@ button.primary:hover { background: var(--ink-press); }
   z-index: 100; font-size: 0.85rem;
 }
 
+/* Notifications — dispatches pinned to the corner; urgent ones want your move. */
+#notify-stack {
+  position: fixed; top: 64px; right: 16px; z-index: 60;
+  display: flex; flex-direction: column; gap: 8px;
+  width: min(340px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.notice {
+  pointer-events: auto; cursor: pointer;
+  background: var(--paper); color: var(--ink);
+  border: 2px solid var(--ink); border-left-width: 8px; border-radius: 2px;
+  padding: 9px 12px;
+  font-family: var(--mono); font-size: 0.82rem; line-height: 1.35;
+  box-shadow: 3px 3px 0 var(--ink-press);
+  animation: deal 0.25s ease-out;
+}
+.notice.urgent { border-left-color: var(--red); font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .notice { animation: none; } }
+@media (max-width: 600px), (max-height: 500px) {
+  #notify-stack { top: 48px; left: 12px; right: 12px; width: auto; }
+}
+
+/* Connection lost: say so, rather than let a stale table pass for a quiet one. */
+#conn-status {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 110;
+  background: var(--ink-press); color: var(--paper);
+  font-family: var(--mono); font-weight: 700; font-size: 0.8rem;
+  text-align: center; padding: 6px 12px;
+}
+
+/* Log lines that just arrived */
+#log p.fresh { background: color-mix(in srgb, var(--yellow) 30%, transparent); font-weight: 700; }
+
 /* Small screens: the map stays a scaled square that fills the column, with
    smaller pegs and labels so the scatter still reads. */
 @media (max-width: 760px) {
@@ -927,6 +960,11 @@ button.primary:hover { background: var(--ink-press); }
 }
 #banner-row #phase-banner { flex: 1; }
 #banner-row > .info-btn { align-self: center; margin: 0 8px; width: 28px; height: 28px; font-size: 0.95rem; }
+.notify-btn {
+  align-self: center; margin: 0 0 0 8px; padding: 0;
+  width: 32px; height: 32px; font-size: 1rem; line-height: 1;
+  background: transparent; border: 1.5px solid var(--ink); border-radius: 50%; cursor: pointer;
+}
 #perks-bar > .info-btn:first-child { margin: 0 6px 0 0; }
 #modal-info { z-index: 90; }
 .info-box { text-align: left; max-height: 86vh; display: flex; flex-direction: column; }
