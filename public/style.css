@@ -790,3 +790,35 @@ button.primary:hover { background: var(--ink-press); }
 .cons-more .cons-text { font-style: italic; margin: 4px 0 0; }
 .reaction-explain { font-size: 0.85rem; background: #efe9d6; border-left: 3px solid var(--purple); padding: 6px 10px; margin: 8px 0; }
 @media (max-width: 600px) { .conspiracy-card { width: 100%; } }
+
+/* ⓘ explanations — a small stamped "i" beside every section; one shared sheet (help.js) */
+.info-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; padding: 0; margin: 0 0 0 4px;
+  border: 1.5px solid currentColor; border-radius: 50%;
+  background: transparent; color: inherit;
+  font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 700;
+  font-size: 0.78rem; line-height: 1; letter-spacing: 0; text-transform: none;
+  vertical-align: middle; flex-shrink: 0; cursor: pointer; opacity: 0.75;
+}
+.info-btn:hover { opacity: 1; background: var(--paper2); color: var(--ink); }
+/* Bigger hit area on touch screens without a bigger glyph */
+@media (pointer: coarse) { .info-btn { position: relative; } .info-btn::after { content: ''; position: absolute; inset: -9px; } }
+#banner-row { display: flex; align-items: stretch; }
+#banner-row #phase-banner { flex: 1; }
+#banner-row > .info-btn { align-self: center; margin: 0 8px; width: 28px; height: 28px; font-size: 0.95rem; }
+#perks-bar > .info-btn:first-child { margin: 0 6px 0 0; }
+#modal-info { z-index: 90; }
+.info-box { text-align: left; max-height: 86vh; display: flex; flex-direction: column; }
+.info-box h3 { padding-right: 36px; }
+#info-body { overflow-y: auto; font-size: 0.92rem; line-height: 1.5; }
+#info-body p { margin: 0 0 10px; }
+#info-body ul, #info-body ol { margin: 0 0 10px 20px; }
+#info-body li { margin-bottom: 5px; }
+.info-req { font-family: var(--mono); font-weight: 700; font-size: 0.85rem; }
+.info-status { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+.info-status.on { color: var(--green); font-weight: 700; }
+.info-flavour { font-style: italic; color: var(--muted); }
+.info-see { border-top: 1px dotted var(--line); padding-top: 8px; margin-top: 4px; font-size: 0.82rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.info-see .link-btn { padding: 2px 0; font-size: 0.82rem; text-decoration: underline; }
+@media (max-width: 600px) { .modal-box.info-box { padding: 22px 18px; } }
