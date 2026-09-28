@@ -1,7 +1,7 @@
 {
   "name": "the-system",
   "version": "0.1.0",
-  "description": "The System \u2014 a multiplayer political-strategy web game, core loop and modes complete",
+  "description": "The System — a multiplayer political-strategy web game, core loop and modes complete",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "express": "^4.19.0",
+    "qrcode": "^1.5.4",
     "socket.io": "^4.7.0"
   },
   "devDependencies": {

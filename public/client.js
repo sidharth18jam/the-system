@@ -16,8 +16,33 @@ const IDEOLOGY_LABELS = {
 // Each ideology shares its color with the resource it grants
 const IDEOLOGY_RES = { mogul: 'funds', boss: 'clout', icon: 'media', believer: 'trust' };
 
-let myToken = sessionStorage.getItem('system_token') || null;
-let myRoomCode = sessionStorage.getItem('system_room') || null;
+// Session survives the phone discarding the tab (app switch, screen lock), so a player
+// rejoins their seat instead of coming back as a stranger. Storage can throw (private mode).
+const store = {
+  get: (k) => {
+    try {
+      return localStorage.getItem(k);
+    } catch {
+      return null;
+    }
+  },
+  set: (k, v) => {
+    try {
+      localStorage.setItem(k, v);
+    } catch {
+      /* no storage: reconnect just won't survive a reload */
+    }
+  },
+  del: (k) => {
+    try {
+      localStorage.removeItem(k);
+    } catch {
+      /* ignore */
+    }
+  },
+};
+let myToken = store.get('system_token');
+let myRoomCode = store.get('system_room');
 let myPid = null; // public player id, sent by server in every state payload
 let myIsHost = false;
 let state = null; // latest gameState
@@ -106,8 +131,9 @@ $('btn-join').onclick = () => {
 function saveSession(code, token) {
   myToken = token;
   myRoomCode = code;
-  sessionStorage.setItem('system_token', token);
-  sessionStorage.setItem('system_room', code);
+  store.set('system_token', token);
+  store.set('system_room', code);
+  store.set('system_name', $('name-input').value);
   $('home-error').textContent = '';
 }
 
@@ -116,8 +142,8 @@ socket.on('connect', () => {
   if (myToken && myRoomCode) {
     socket.emit('joinRoom', { code: myRoomCode, token: myToken }, (res) => {
       if (!res || !res.ok) {
-        sessionStorage.removeItem('system_token');
-        sessionStorage.removeItem('system_room');
+        store.del('system_token');
+        store.del('system_room');
         myToken = null;
         myRoomCode = null;
       }
@@ -126,6 +152,27 @@ socket.on('connect', () => {
 });
 
 socket.on('errorMsg', toast);
+
+// Invite links (?room=ABCD) prefill the join code; the last-used name is remembered.
+{
+  const inviteCode = new URLSearchParams(location.search).get('room');
+  if (inviteCode) $('code-input').value = inviteCode.toUpperCase().slice(0, 4);
+  const savedName = store.get('system_name');
+  if (savedName) $('name-input').value = savedName;
+}
+function inviteUrl(code) {
+  return `${location.origin}${location.pathname}?room=${code}`;
+}
+$('btn-invite').onclick = async () => {
+  const url = inviteUrl(myRoomCode);
+  try {
+    if (navigator.share) return await navigator.share({ title: 'The System', text: `Join my game: ${myRoomCode}`, url });
+    await navigator.clipboard.writeText(url);
+    toast('Invite link copied');
+  } catch {
+    /* share sheet dismissed */
+  }
+};
 
 // ---------- lobby ----------
 $('btn-create').onclick = () => {
@@ -141,6 +188,8 @@ socket.on('lobbyState', (lobby) => {
   myIsHost = !!lobby.youAreHost;
   show('screen-lobby');
   $('lobby-code').textContent = lobby.code;
+  const qrSrc = `qr.svg?u=${encodeURIComponent(inviteUrl(lobby.code))}`;
+  if ($('lobby-qr').getAttribute('src') !== qrSrc) $('lobby-qr').src = qrSrc;
   $('lobby-players').innerHTML = lobby.players
     .map(
       (p) =>

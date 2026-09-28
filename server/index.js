@@ -3,17 +3,30 @@ const http = require('http');
 const path = require('path');
 const express = require('express');
 const { Server } = require('socket.io');
+const QRCode = require('qrcode');
 const { SystemGame } = require('./game');
 const { scheduleSave, loadState } = require('./persistence');
 
 const app = express();
 app.use(express.static(path.join(__dirname, '../public')));
 app.get('/healthz', (_req, res) => res.type('text').send('ok')); // platform health check
+// Lobby invite QR: encodes the join link the client builds, so phones can scan to join.
+app.get('/qr.svg', async (req, res) => {
+  const text = String(req.query.u || '');
+  if (!/^https?:\/\//.test(text) || text.length > 300) return res.status(400).end();
+  try {
+    const svg = await QRCode.toString(text, { type: 'svg', margin: 1 });
+    res.type('image/svg+xml').set('Cache-Control', 'public, max-age=86400').send(svg);
+  } catch {
+    res.status(500).end();
+  }
+});
 
 const server = http.createServer(app);
 const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
+const LOBBY_GRACE_MS = 90 * 1000; // how long a dropped lobby player keeps their seat
 
 // roomCode -> { code, hostToken, players: Map<token, {token,pid,name,socketId,connected}>, game|null }
 // Restored from disk on boot so in-progress games survive a restart.
@@ -350,21 +363,29 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     if (!myRoom || !myToken) return;
-    const p = myRoom.players.get(myToken);
-    if (p) p.connected = false;
-    if (!myRoom.game) {
-      // In lobby: drop the player entirely; host drop hands host to next player.
-      myRoom.players.delete(myToken);
-      if (myRoom.players.size === 0) {
-        rooms.delete(myRoom.code);
+    const room = myRoom;
+    const token = myToken;
+    const p = room.players.get(token);
+    // A newer socket (reopened tab, reconnect) already owns this seat — nothing to do.
+    if (!p || p.socketId !== socket.id) return;
+    p.connected = false;
+    broadcast(room);
+    if (room.game) return;
+    // In lobby: phones drop the socket on screen lock or app switch, so hold the seat
+    // briefly and only remove the player if they haven't come back.
+    setTimeout(() => {
+      if (room.game || p.connected || room.players.get(token) !== p) return;
+      room.players.delete(token);
+      if (room.players.size === 0) {
+        rooms.delete(room.code);
         persist();
         return;
       }
-      if (myToken === myRoom.hostToken) {
-        myRoom.hostToken = myRoom.players.keys().next().value;
+      if (token === room.hostToken) {
+        room.hostToken = room.players.keys().next().value;
       }
-    }
-    broadcast(myRoom);
+      broadcast(room);
+    }, LOBBY_GRACE_MS).unref();
   });
 });
 
