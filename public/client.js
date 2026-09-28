@@ -81,6 +81,8 @@ let toughLovePay = { funds: 0, clout: 0, media: 0, trust: 0 }; // the "any 2" ha
 let buyDiscounts = { funds: 0, clout: 0, media: 0, trust: 0 }; // Helping Hands (Believer L3)
 let consBuyOpen = false; // conspiracy payment stepper is open
 let consBuyPay = { funds: 0, clout: 0, media: 0, trust: 0 };
+let lastActionScroll = null; // turn whose action phase already scrolled the board into view (phones)
+let lastStripActive = null; // active player last scrolled into view in the phone dossier strip
 let eliteExpanded = false; // show the full elite catalogue vs just what's relevant
 // Elite active-power flows (DD-22). eliteAs is set to an eliteId when the Maverick borrows.
 let eliteMode = null; // null | 'oracle' | 'insurgentFrom' | 'benefactorZone'
@@ -91,6 +93,11 @@ let insurgentMoves = []; // committed [{ fromZoneId, slotIndex, toZoneId }]
 let insurgentFrom = null; // { zoneId, slot } awaiting a destination click
 let backerSel = []; // opponent ids picked for Backer backing
 let benefactorSel = { toId: null, hqIndex: null }; // then click a zone to seat
+
+// Touch screens: say "tap", and on narrow ones keep the board in view while placing.
+const mq = (q) => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia(q).matches;
+const TAP = mq('(pointer: coarse)') ? 'tap' : 'click';
+const isPhone = () => mq('(max-width: 600px), (max-height: 500px)');
 
 const zeroRes = () => ({ funds: 0, clout: 0, media: 0, trust: 0 });
 function resTotal(m) {
@@ -433,6 +440,12 @@ socket.on('gameState', (s) => {
   myIsHost = !!s.youAreHost;
   show('screen-game');
   render();
+  // Phones: when my action phase opens, bring the board up once — that's where the turn is played.
+  const actionKey = isMyTurn() && s.phase === 'ACTION' ? s.turnIndex : null;
+  if (actionKey !== null && actionKey !== lastActionScroll && isPhone()) {
+    $('board').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  lastActionScroll = actionKey;
 });
 
 function me() {
@@ -823,7 +836,10 @@ function renderBanner() {
     text = `${MODE_LABELS[state.mode] || state.mode} · ${text}`;
   }
   b.textContent = text;
-  b.classList.toggle('your-turn', isMyTurn() && state.phase !== 'GAME_OVER');
+  const myMove = isMyTurn() && state.phase !== 'GAME_OVER';
+  b.classList.toggle('your-turn', myMove);
+  // A backgrounded tab (or a phone on another app) still says when the table is waiting on you.
+  document.title = myMove ? '● Your turn — The System' : 'The System';
 }
 
 const MODE_LABELS = {
@@ -832,6 +848,12 @@ const MODE_LABELS = {
   twoPlayer: '⚔ HEAD TO HEAD',
   edgeOfChaos: '🔥 EDGE OF CHAOS',
 };
+
+// Colour alone can't carry the resource (red/green is the classic colour-blind pair),
+// so every chip names itself to hover and to screen readers.
+function resChip(r, n) {
+  return `<span class="res-chip ${r}" title="${n} ${RES_LABELS[r]}" aria-label="${n} ${RES_LABELS[r]}">${n}</span>`;
+}
 
 function renderPlayers() {
   // While targeting a player-aimed conspiracy, opponents' cards become click targets.
@@ -856,11 +878,19 @@ function renderPlayers() {
         (income ? `<span class="mini-badge" title="Passive ideologue income per policy answered">⚙ +${income}</span>` : '') +
         (p.benched ? `<span class="mini-badge" title="Voters benched by a Land Grab">🪑 ${p.benched}</span>` : '') +
         (p.iou && p.iou.debt > 0 ? `<span class="mini-badge iou" title="Owes an IOU">IOU ${p.iou.debt}</span>` : '');
+      // The scoreboard: constituencies held (solo or in coalition) and voters on the map.
+      const zonesHeld = state.zones.filter(
+        (z) => z.majorityOwner === p.id || (z.coalition && (z.coalition.a === p.id || z.coalition.b === p.id))
+      ).length;
+      const voters = state.zones.reduce((n, z) => n + z.slots.filter((o) => o === p.id).length, 0);
+      const cap = p.cap || state.resourceCap;
       return `<div class="player-card border-${p.color} ${active ? 'active' : ''} ${targetable ? 'targetable' : ''}" data-target-player="${targetable ? p.id : ''}">
+        ${active && state.phase !== 'GAME_OVER' ? '<div class="turn-tag">▶ On the clock</div>' : ''}
         <div class="pname">${esc(p.name)} ${p.id === myPid ? '<span class="you-tag">YOU</span>' : ''} ${badges}</div>
+        <div class="score-row"><span title="Constituencies held"><b>${zonesHeld}</b> zone${zonesHeld === 1 ? '' : 's'}</span> · <span title="Voters on the map"><b>${voters}</b> voter${voters === 1 ? '' : 's'}</span></div>
         <div class="res-row">
-          ${RES_KEYS.map((r) => `<span class="res-chip ${r}">${p.resources[r]}</span>`).join('')}
-          <span class="${p.resourceTotal > (p.cap || state.resourceCap) ? 'cap-warn' : ''}" style="font-size:0.75rem;color:var(--muted)">${p.resourceTotal}/${p.cap || state.resourceCap}</span>
+          ${RES_KEYS.map((r) => resChip(r, p.resources[r])).join('')}
+          <span class="res-total ${p.resourceTotal > cap ? 'cap-warn' : ''}" title="Resources held / cap">${p.resourceTotal}/${cap}</span>
         </div>
         <div class="manifesto-row">${manifesto}</div>
       </div>`;
@@ -872,6 +902,14 @@ function renderPlayers() {
       el.onclick = () => onPlayerTarget(el.dataset.targetPlayer);
     });
   }
+  // On phones the dossiers are a sideways strip: bring the new active player into view
+  // once per turn change (never on every render, so a player's own swipe isn't undone).
+  const panel = $('players-panel');
+  if (state.activePlayerId !== lastStripActive && panel.scrollWidth > panel.clientWidth) {
+    const card = panel.querySelector('.player-card.active');
+    if (card) panel.scrollLeft += card.getBoundingClientRect().left - panel.getBoundingClientRect().left;
+  }
+  lastStripActive = state.activePlayerId;
 }
 
 // A player card was clicked while targeting a conspiracy or elite.
@@ -1396,7 +1434,7 @@ function renderHq() {
       return `<div class="voter-card ${cls} ${sel}" data-hq="${i}">
         <div class="vcount">${c.voters} 🗳</div>
         <div class="vcost">${Object.entries(eff)
-          .map(([r, n]) => `<span class="res-chip ${r}">${n}</span>`)
+          .map(([r, n]) => resChip(r, n))
           .join('')}${discounted ? '<span class="discount-tag" title="Helping Hands discount">▾</span>' : ''}</div>
       </div>`;
     })
@@ -1412,6 +1450,11 @@ function renderHq() {
         const i = Number(el.dataset.hq);
         selectedHqIndex = selectedHqIndex === i ? null : i;
         render();
+        // On a phone the market sits under the board: bring the constituencies back
+        // on screen so the next tap (where to place) doesn't need a scroll.
+        if (selectedHqIndex !== null && isPhone()) {
+          $('board').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       };
     });
   }
@@ -1446,16 +1489,24 @@ function renderHq() {
     !canTrade || state.players.length < 3 || coalitionZones().length === 0
   );
   $('action-hint').textContent = inAuctionPlace
-    ? 'You won the bloc — click a constituency to seat your new voters.'
+    ? `You won the bloc — ${TAP} a constituency to seat your new voters.`
     : inGerry
     ? gerrySel
       ? `Drop the voter in a highlighted constituency — or onto a flashing Volatile Area to trap its owner with a Headline. (${state.gerryMovesLeft} move(s) left)`
-      : `You hold a majority: click a highlighted voter to move it, or skip. (${state.gerryMovesLeft} move(s) left)`
+      : `You hold a majority: ${TAP} a highlighted voter to move it, or skip. (${state.gerryMovesLeft} move(s) left)`
     : !canBuy
     ? ''
     : selectedHqIndex !== null
-    ? 'Now click a constituency to place these voters (one zone only).'
-    : 'Click a voter card you can afford, or end your turn.';
+    ? `Now ${TAP} a constituency to place these voters (one zone only).`
+    : `${TAP === 'tap' ? 'Tap' : 'Click'} a voter card you can afford, or end your turn.`;
+  // Phones pin the action bar to the bottom of the screen; drop it when there's nothing in it.
+  const bar = $('action-bar');
+  const barIdle =
+    !$('action-hint').textContent &&
+    ['volatile-toggle', 'btn-hold', 'btn-trade', 'btn-coalition', 'btn-skip-gerry', 'btn-end-turn'].every((id) =>
+      $(id).classList.contains('hidden')
+    );
+  bar.classList.toggle('idle', barIdle);
 }
 
 // ---------- 2 Player requirement placement (DD-26) ----------

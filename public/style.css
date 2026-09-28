@@ -32,9 +32,13 @@ body {
   color: var(--ink);
   font-family: var(--body);
   min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
 }
+/* No double-tap-zoom delay on anything you tap during play. */
+button, select, label, .zone, .slot, .voter-card, .player-card, .chip { touch-action: manipulation; }
 .hidden { display: none !important; }
-.screen { min-height: 100vh; }
+.screen { min-height: 100vh; min-height: 100dvh; }
 
 button {
   font-family: var(--body);
@@ -129,7 +133,10 @@ button.primary:hover { background: var(--ink-press); }
   display: grid; grid-template-columns: 240px 1fr 270px;
   gap: 14px; padding: 14px; max-width: 1400px; margin: 0 auto;
 }
-@media (max-width: 1000px) { #game-layout { grid-template-columns: 1fr; } }
+/* minmax(0, …) so a wide child (the phone's swipeable dossier strip) scrolls inside
+   its track instead of stretching the whole column past the screen. */
+@media (max-width: 1000px) { #game-layout { grid-template-columns: minmax(0, 1fr); } }
+#left-col, #board-wrap, #log-panel { min-width: 0; }
 
 /* Players panel — party dossiers */
 #left-col { display: flex; flex-direction: column; gap: 14px; }
@@ -141,7 +148,18 @@ button.primary:hover { background: var(--ink-press); }
   border-radius: 2px;
   padding: 10px 12px;
 }
-.player-card.active { box-shadow: 4px 4px 0 var(--ink); }
+.player-card { position: relative; }
+.player-card.active { box-shadow: 4px 4px 0 var(--ink); background: #f6f0de; }
+.turn-tag {
+  position: absolute; top: -9px; right: 8px;
+  background: var(--ink); color: var(--paper);
+  font-family: var(--mono); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 2px;
+}
+.score-row { font-size: 0.75rem; color: var(--muted); margin: -2px 0 6px; font-variant-numeric: tabular-nums; }
+.score-row b { color: var(--ink); font-weight: 800; }
+.res-total { font-size: 0.75rem; color: var(--muted); }
 .player-card .pname { font-weight: 800; margin-bottom: 6px; }
 .player-card .you-tag {
   font-family: var(--mono); font-size: 0.7rem; font-weight: 700;
@@ -158,7 +176,7 @@ button.primary:hover { background: var(--ink-press); }
 .res-chip.media { background: var(--media); }
 .res-chip.trust { background: var(--trust); color: var(--ink-press); }
 .manifesto-row { margin-top: 6px; font-size: 0.75rem; color: var(--muted); }
-.cap-warn { color: var(--red); font-size: 0.75rem; font-weight: 700; }
+.cap-warn, .res-total.cap-warn { color: var(--red); font-size: 0.75rem; font-weight: 700; }
 
 /* ---------- Board — the constituency map ----------
    A surveyed electoral map. Center is a small capital diamond in the middle,
@@ -168,7 +186,9 @@ button.primary:hover { background: var(--ink-press); }
 #board {
   position: relative;
   aspect-ratio: 1;
-  max-width: 680px;
+  /* Sized to the viewport too, so on a laptop screen the market sits under the board
+     without scrolling between "pick a card" and "pick a constituency". */
+  max-width: min(680px, max(420px, calc(100vh - 250px)));
   margin: 0 auto;
   border: 3px solid var(--ink);
   background: var(--paper2);
@@ -396,6 +416,12 @@ button.primary:hover { background: var(--ink-press); }
 .slot.movable { cursor: pointer; outline: 2px dashed var(--ink); outline-offset: 1px; pointer-events: auto; z-index: 5; }
 .slot.movable:hover { transform: translate(-50%, -50%) scale(1.35); z-index: 6; }
 .slot.picked { outline: 3px solid var(--red); outline-offset: 1px; transform: translate(-50%, -50%) scale(1.35); pointer-events: auto; z-index: 6; }
+/* Interactive pegs get an invisible 36px hit area — the dot itself is 12–15px,
+   far below a fingertip. */
+.slot.movable::after, .slot.picked::after, .slot.trap-target::after {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 36px; height: 36px; transform: translate(-50%, -50%); border-radius: 50%;
+}
 /* Volatile Area as a gerrymander trap destination */
 .slot.trap-target { cursor: pointer; outline: 2px dashed var(--red); outline-offset: 2px; animation: trap-pulse 1s ease-in-out infinite; pointer-events: auto; z-index: 5; }
 .slot.trap-target:hover { transform: translate(-50%, -50%) scale(1.4); z-index: 6; }
@@ -494,6 +520,9 @@ button.primary:hover { background: var(--ink-press); }
   border: 3px solid var(--ink);
   box-shadow: 8px 8px 0 var(--ink-press);
   padding: 28px 32px; width: 400px; text-align: center;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px);
+  overflow-y: auto; overscroll-behavior: contain;
   animation: deal 0.22s ease-out;
 }
 @keyframes deal {
@@ -777,6 +806,90 @@ button.primary:hover { background: var(--ink-press); }
 @media (max-width: 600px) {
   .home-box { width: 92vw; padding: 28px 20px; }
   #game-layout { padding: 10px; gap: 10px; }
+  #phase-banner { font-size: 0.78rem; letter-spacing: 1px; padding: 9px 8px; }
+  /* Elite catalogue scrolls sideways instead of stacking a dozen cards. */
+  #elite-list { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; }
+  .elite-card { flex: 0 0 170px; }
+  #log-panel { max-height: 45vh; }
+  #log { max-height: 36vh; }
+  .voter-card .vcount { font-size: 1.1rem; }
+  .modal-box { padding: 22px 16px; }
+  .modal-box.wide { max-width: calc(100vw - 24px); }
+}
+
+/* ---------- Phones (portrait, or any landscape phone) ----------
+   The turn is played as: pick a market card, then tap the board. Keep both close:
+   the market sits directly under the board, and the action bar (hint + End Turn)
+   is docked to the bottom of the screen instead of scrolling away. */
+@media (max-width: 600px), (max-height: 500px) {
+  /* Dossiers become a swipeable strip so the board is on screen without scrolling
+     past every player first. */
+  #players-panel {
+    flex-direction: row; overflow-x: auto; gap: 8px;
+    scroll-snap-type: x proximity; padding: 10px 2px 6px;
+  }
+  .player-card { flex: 0 0 min(250px, 78vw); scroll-snap-align: start; }
+  #board-wrap { display: flex; flex-direction: column; }
+  /* Three market cards across instead of two-and-an-orphan. */
+  #hq-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .voter-card { min-width: 0; }
+  #action-bar { flex-wrap: wrap; gap: 8px; }
+  #action-hint { flex-basis: 100%; }
+  #policy-outcome { order: 1; }
+  #requirement-panel, #conspiracy-panel, #elite-panel { order: 2; }
+  #board { width: 100%; scroll-margin-top: 60px; } /* flex child with auto margins won't stretch on its own */
+  #hq-mat { padding: 10px; }
+  #hq-mat .hq-title { margin-bottom: 8px; }
+  .voter-card { padding: 6px; }
+  .voter-card .vcost { margin-top: 4px; }
+
+  /* Toasts drop from under the banner so they never cover the dock. */
+  #toast { top: 64px; bottom: auto; max-width: calc(100vw - 24px); text-align: center; }
+  /* iOS zooms the page on focusing any field under 16px. */
+  select, input { font-size: 16px !important; }
+  .stepper button, .discard-row button { min-width: 44px; min-height: 40px; }
+  .discard-row { margin: 4px 0; }
+  /* Long modals scroll; their confirm button stays reachable at the bottom. */
+  #btn-propose-trade, #btn-propose-coalition, #btn-discard {
+    position: sticky; bottom: 0;
+    box-shadow: 0 -10px 0 var(--paper); /* paper strip so scrolled rows don't show through */
+  }
+}
+
+/* Portrait phones: dock the action bar to the bottom of the screen. */
+@media (max-width: 600px) and (min-height: 501px) {
+  #action-bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; margin: 0;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: var(--paper);
+    border-top: 3px solid var(--ink);
+    box-shadow: 0 -4px 12px rgba(29, 24, 64, 0.15);
+    flex-wrap: wrap; gap: 8px;
+  }
+  #action-bar.idle { display: none; }
+  #action-hint { flex-basis: 100%; color: var(--ink); font-size: 0.8rem; font-weight: 600; }
+  #action-hint:empty { display: none; }
+  #action-bar button { flex: 1 1 auto; min-height: 44px; padding: 8px 12px; }
+  #btn-end-turn { flex: 1 1 40%; }
+  #screen-game { padding-bottom: 130px; }
+}
+
+/* Landscape phones: board on the left at full screen height, market and
+   everything else beside it — pick a card and a zone without scrolling at all. */
+@media (max-height: 500px) {
+  #phase-banner { padding: 6px 8px; font-size: 0.75rem; letter-spacing: 1px; }
+  #board-wrap {
+    display: grid; grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 12px; align-items: start;
+  }
+  #board {
+    grid-column: 1; grid-row: 1 / span 6; margin: 0;
+    width: calc(100vh - 56px); width: calc(100svh - 56px); max-width: none;
+    scroll-margin-top: 36px;
+  }
+  #board-wrap > :not(#board) { grid-column: 2; }
+  #board-wrap > #hq-mat { margin-top: 0; }
+  #toast { top: 40px; }
 }
 
 /* Lobby invite QR — white quiet zone so phone cameras can read it on the dark theme */
@@ -804,7 +917,14 @@ button.primary:hover { background: var(--ink-press); }
 .info-btn:hover { opacity: 1; background: var(--paper2); color: var(--ink); }
 /* Bigger hit area on touch screens without a bigger glyph */
 @media (pointer: coarse) { .info-btn { position: relative; } .info-btn::after { content: ''; position: absolute; inset: -9px; } }
-#banner-row { display: flex; align-items: stretch; }
+/* The row (banner + its ⓘ) stays pinned so "whose turn / what now" is visible while
+   scrolling the market or log. Sticky must sit on the row: the banner alone is
+   confined to this row's box and would scroll away with it. */
+#banner-row {
+  display: flex; align-items: stretch;
+  position: sticky; top: 0; z-index: 20;
+  background: var(--paper);
+}
 #banner-row #phase-banner { flex: 1; }
 #banner-row > .info-btn { align-self: center; margin: 0 8px; width: 28px; height: 28px; font-size: 0.95rem; }
 #perks-bar > .info-btn:first-child { margin: 0 6px 0 0; }
