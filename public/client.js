@@ -80,6 +80,7 @@ let toughLovePay = { funds: 0, clout: 0, media: 0, trust: 0 }; // the "any 2" ha
 let buyDiscounts = { funds: 0, clout: 0, media: 0, trust: 0 }; // Helping Hands (Believer L3)
 let consBuyOpen = false; // conspiracy payment stepper is open
 let consBuyPay = { funds: 0, clout: 0, media: 0, trust: 0 };
+let lastActionScroll = null; // turn whose action phase already scrolled the board into view (phones)
 let lastStripActive = null; // active player last scrolled into view in the phone dossier strip
 let eliteExpanded = false; // show the full elite catalogue vs just what's relevant
 // Elite active-power flows (DD-22). eliteAs is set to an eliteId when the Maverick borrows.
@@ -91,6 +92,11 @@ let insurgentMoves = []; // committed [{ fromZoneId, slotIndex, toZoneId }]
 let insurgentFrom = null; // { zoneId, slot } awaiting a destination click
 let backerSel = []; // opponent ids picked for Backer backing
 let benefactorSel = { toId: null, hqIndex: null }; // then click a zone to seat
+
+// Touch screens: say "tap", and on narrow ones keep the board in view while placing.
+const mq = (q) => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia(q).matches;
+const TAP = mq('(pointer: coarse)') ? 'tap' : 'click';
+const isPhone = () => mq('(max-width: 600px), (max-height: 500px)');
 
 const zeroRes = () => ({ funds: 0, clout: 0, media: 0, trust: 0 });
 function resTotal(m) {
@@ -273,6 +279,12 @@ socket.on('gameState', (s) => {
   myIsHost = !!s.youAreHost;
   show('screen-game');
   render();
+  // Phones: when my action phase opens, bring the board up once — that's where the turn is played.
+  const actionKey = isMyTurn() && s.phase === 'ACTION' ? s.turnIndex : null;
+  if (actionKey !== null && actionKey !== lastActionScroll && isPhone()) {
+    $('board').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  lastActionScroll = actionKey;
 });
 
 function me() {
@@ -1277,6 +1289,11 @@ function renderHq() {
         const i = Number(el.dataset.hq);
         selectedHqIndex = selectedHqIndex === i ? null : i;
         render();
+        // On a phone the market sits under the board: bring the constituencies back
+        // on screen so the next tap (where to place) doesn't need a scroll.
+        if (selectedHqIndex !== null && isPhone()) {
+          $('board').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       };
     });
   }
@@ -1310,16 +1327,24 @@ function renderHq() {
     !canTrade || state.players.length < 3 || coalitionZones().length === 0
   );
   $('action-hint').textContent = inAuctionPlace
-    ? 'You won the bloc — click a constituency to seat your new voters.'
+    ? `You won the bloc — ${TAP} a constituency to seat your new voters.`
     : inGerry
     ? gerrySel
       ? `Drop the voter in a highlighted constituency — or onto a flashing Volatile Area to trap its owner with a Headline. (${state.gerryMovesLeft} move(s) left)`
-      : `You hold a majority: click a highlighted voter to move it, or skip. (${state.gerryMovesLeft} move(s) left)`
+      : `You hold a majority: ${TAP} a highlighted voter to move it, or skip. (${state.gerryMovesLeft} move(s) left)`
     : !canBuy
     ? ''
     : selectedHqIndex !== null
-    ? 'Now click a constituency to place these voters (one zone only).'
-    : 'Click a voter card you can afford, or end your turn.';
+    ? `Now ${TAP} a constituency to place these voters (one zone only).`
+    : `${TAP === 'tap' ? 'Tap' : 'Click'} a voter card you can afford, or end your turn.`;
+  // Phones pin the action bar to the bottom of the screen; drop it when there's nothing in it.
+  const bar = $('action-bar');
+  const barIdle =
+    !$('action-hint').textContent &&
+    ['volatile-toggle', 'btn-hold', 'btn-trade', 'btn-coalition', 'btn-skip-gerry', 'btn-end-turn'].every((id) =>
+      $(id).classList.contains('hidden')
+    );
+  bar.classList.toggle('idle', barIdle);
 }
 
 // ---------- 2 Player requirement placement (DD-26) ----------
