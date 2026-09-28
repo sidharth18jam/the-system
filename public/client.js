@@ -68,6 +68,7 @@ let setupBidAmount = 0; // 2 Player secret first-move bid (DD-26)
 let reqSel = null; // requirement card id mid-placement: awaiting a zone click
 let conspiracyPlay = null; // { card } mid-targeting: awaiting a target click
 let conspiracySeen = 0; // last lastConspiracy.key surfaced as a toast
+const consExpanded = new Set(); // conspiracy card ids whose explanation is open (survives re-render)
 let auctionBid = 0; // my in-progress bid amount in the auction modal
 let auctionKey = null; // identity of the current auction, to reset my bid input
 // Ideologue-power targeting in progress (DD-21).
@@ -123,6 +124,166 @@ function toast(msg) {
   clearTimeout(t._timer);
   t._timer = setTimeout(() => t.classList.add('hidden'), 3000);
 }
+
+// ---------- ⓘ explanations ----------
+// Every info button carries data-info="<topic>"; one delegated listener opens the sheet,
+// so buttons inside re-rendered panels need no wiring. Fixed topics live in help.js.
+function infoBtn(topic, label) {
+  return `<button class="info-btn" data-info="${esc(topic)}" aria-label="Explain ${esc(label)}">i</button>`;
+}
+
+// What each elite's power does (engine: server/game.js, DD-22) and why you'd want it.
+const ELITE_INFO = {
+  fixer: {
+    kind: 'Always on',
+    power: 'Your policy answers pay double resources.',
+    why: 'Pure economy: every turn funds more buying. Strongest when you get it early.',
+  },
+  operator: {
+    kind: 'Always on',
+    power: 'When buying a voter card you may hold its voters in reserve instead of placing them, for as long as you like. Place them later on your turn.',
+    why: 'Rivals can’t see where you’ll strike. Drop a bloc in at the exact moment a zone tips.',
+  },
+  benefactor: {
+    kind: 'Once per turn',
+    power: 'Give a rival 2 resources, then take one Market card’s voters into a zone for free.',
+    why: 'A 2-resource gift for a 3–5 resource card. The rival gains a little; you gain a lot.',
+  },
+  backer: {
+    kind: 'Always on',
+    power: 'Pick one or two rivals to back. Each time one of them buys a 3-voter card, you get 1 voter in reserve (place it by your next turn).',
+    why: 'You profit from rivals doing well, so trade generously with the ones you back.',
+  },
+  agitator: {
+    kind: 'Always on',
+    power: 'Conspiracies cost 2 less, up to twice per turn.',
+    why: 'Makes conspiracies cheaper than voter cards. Built for a sabotage-heavy game.',
+  },
+  spinner: {
+    kind: 'Once per turn',
+    power: 'Pay 3 to draw a Headline and aim it at a rival’s strongest zone.',
+    why: 'Headlines are mostly bad news. You pick who gets them.',
+  },
+  organizer: {
+    kind: 'Always on',
+    power: 'See every rival’s conspiracy cards.',
+    why: 'No surprises. You know who can hurt you, and whether they’re bluffing in trades.',
+  },
+  informant: {
+    kind: 'Always on',
+    power: 'When a rival plays a conspiracy, one of their unprotected voters is removed. After a full round with no conspiracies, you get 2 voters in reserve (place them by your next turn).',
+    why: 'Punishes dirty play and pays you when the table stays clean. Either way you gain.',
+  },
+  oracle: {
+    kind: 'Once per turn',
+    power: 'Remove one of your own voters from the board and take any 3 resources.',
+    why: 'Turns a wasted voter (in a zone you can’t win) into the exact resources you need.',
+  },
+  insurgent: {
+    kind: 'Once per turn',
+    power: 'Move up to 4 of your own voters (not majority or Volatile Area voters) each into a neighbouring zone. Works alongside gerrymandering.',
+    why: 'Mobility without needing a majority first. Pull scattered voters together to finish a capture.',
+  },
+  enforcer: {
+    kind: 'Always on',
+    power: 'Whenever another player answers a policy question, you take 1 from their largest resource pile.',
+    why: 'Steady income on everyone else’s turn, and it slows the leaders most.',
+  },
+  strongman: {
+    kind: 'Always on',
+    power: 'When you gerrymander a rival’s voter into another zone, it becomes yours.',
+    why: 'Every gerrymander move becomes a two-voter swing. Pairs well with holding many majorities.',
+  },
+  maverick: {
+    kind: 'Once per turn',
+    power: 'Borrow the power of the Benefactor, Spinner, Oracle or Insurgent for one use.',
+    why: 'Flexibility over depth. It expires once any ideology reaches 3 — by your 9th answer at the latest.',
+  },
+};
+
+// Resolve a topic key to { title, body, see }: fixed topics from help.js, plus
+// per-elite and per-turf sheets built from live game data.
+function helpTopic(key) {
+  if (HELP[key]) return HELP[key];
+  const [kind, id] = key.split(':');
+  if (kind === 'elite') {
+    const e = state && (state.eliteCatalog || []).find((c) => c.id === id);
+    const info = ELITE_INFO[id];
+    if (!e || !info) return null;
+    const my = me();
+    const miss = my ? eliteMissing(e, my) : [];
+    const active = my && (my.elites || []).includes(id);
+    const status = active
+      ? '<p class="info-status on">You have this elite now.</p>'
+      : my
+      ? `<p class="info-status">You need: ${esc(miss.join(', '))}.</p>`
+      : '';
+    const warn = e.negation
+      ? `<p><b>Refuse ${esc(ideoShort(e.negation))}:</b> one ${esc(ideoShort(e.negation))} card anywhere in your manifesto switches this off — and cards don’t go away.</p>`
+      : '';
+    return {
+      title: e.title,
+      body: `<p class="info-req">${esc(eliteReqText(e))}</p>
+        <p><b>${esc(info.kind)}:</b> ${esc(info.power)}</p>
+        <p><b>Why go for it:</b> ${esc(info.why)}</p>
+        ${warn}${status}
+        <p class="info-flavour">${esc(e.text)}</p>`,
+      see: ['elites'],
+    };
+  }
+  if (kind === 'turf') {
+    const t = state && (state.homeTurfs || []).find((x) => x.zoneId === id);
+    if (!t) return null;
+    const ex = explainConspiracy({ effect: t.effect, target: t.target });
+    return {
+      title: t.title,
+      body: `${ex ? `<p><b>Power:</b> ${esc(ex.does)}</p>` : ''}
+        <p>${t.compulsory ? 'Automatic: fires on its own at the end of the holder’s turn if unused.' : 'Whoever holds this zone’s majority may use it once per turn.'}</p>
+        <p class="info-flavour">${esc(t.text)}</p>`,
+      see: ['turfs'],
+    };
+  }
+  return null;
+}
+
+function openInfo(key) {
+  const t = helpTopic(key);
+  if (!t) return;
+  $('info-title').textContent = t.title;
+  const see = (t.see || []).filter((k) => HELP[k]);
+  $('info-body').innerHTML =
+    t.body +
+    (see.length
+      ? `<div class="info-see">See also: ${see
+          .map((k) => `<button class="link-btn" data-info="${k}">${esc(HELP[k].title)}</button>`)
+          .join('')}</div>`
+      : '');
+  $('modal-info').classList.remove('hidden');
+  $('info-body').scrollTop = 0;
+}
+function closeInfo() {
+  $('modal-info').classList.add('hidden');
+}
+// Capture phase: an ⓘ inside a clickable card (voter card, player card) must not also
+// trigger that card's own action.
+document.addEventListener(
+  'click',
+  (ev) => {
+    const btn = ev.target.closest && ev.target.closest('[data-info]');
+    if (!btn) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    openInfo(btn.dataset.info);
+  },
+  true
+);
+$('info-close').onclick = closeInfo;
+$('modal-info').addEventListener('click', (ev) => {
+  if (ev.target === $('modal-info')) closeInfo();
+});
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape') closeInfo();
+});
 
 // ---------- home ----------
 $('btn-join').onclick = () => {
@@ -419,7 +580,7 @@ function renderPerksBar() {
 
   el.classList.toggle('hidden', parts.length === 0);
   if (parts.length === 0) return;
-  el.innerHTML = parts.join('');
+  el.innerHTML = infoBtn('perks', 'ideology powers') + parts.join('');
   wirePerkBar();
 }
 
@@ -947,7 +1108,7 @@ function turfChip(z) {
     !conspiracyPlay &&
     !perkMode &&
     !eliteMode;
-  return `<div class="turf-chip" title="${esc(turf.text)}">🏘 ${esc(turf.title)}${
+  return `<div class="turf-chip" title="${esc(turf.text)}">🏘 ${esc(turf.title)} ${infoBtn('turf:' + z.id, turf.title)}${
     turf.compulsory ? ' <i>(auto)</i>' : ''
   }${usedThisTurn ? ' ✓' : ''}${usable ? ` <button class="turf-use" data-turf="${z.id}">Use</button>` : ''}</div>`;
 }
@@ -1242,7 +1403,7 @@ function renderPolicyOutcome() {
   if (!visible) return;
   const active = playerById(state.activePlayerId);
   const who = isMyTurn() ? 'You' : esc(active.name);
-  el.innerHTML = `<div class="hq-title">Policy Outcome</div>
+  el.innerHTML = `<div class="hq-title">Policy Outcome ${infoBtn('outcome', 'the policy outcome')}</div>
     <p class="outcome-line">${who} chose “${esc(last.chosen.text)}”</p>
     <div class="res-row">${rewardChips(last.chosen)}</div>`;
 }
@@ -1303,6 +1464,7 @@ function renderHq() {
     state.phase === 'AUCTION_PLACE' && state.auctionPlacement && state.auctionPlacement.winnerId === myPid;
   $('btn-end-turn').classList.toggle('hidden', !canBuy);
   $('btn-skip-gerry').classList.toggle('hidden', !inGerry);
+  $('gerry-info').classList.toggle('hidden', !inGerry);
   $('volatile-toggle').classList.toggle('hidden', !((canBuy && selectedHqIndex !== null) || inAuctionPlace));
   // Operator (elite): bank the selected card's voters in reserve instead of seating them.
   const canHold = canBuy && selectedHqIndex !== null && (my.elites || []).includes('operator');
@@ -1361,12 +1523,12 @@ function renderRequirementPanel() {
   if (!myTurn) {
     reqSel = null;
     const placer = playerById(state.reqPlacerId);
-    el.innerHTML = `<div class="hq-title">Zone Requirements</div>
+    el.innerHTML = `<div class="hq-title">Zone Requirements ${infoBtn('requirements', 'zone requirements')}</div>
       <p class="tagline">${esc(placer ? placer.name : 'Rival')} is pinning a requirement on a constituency…</p>`;
     return;
   }
   el.innerHTML =
-    `<div class="hq-title">Zone Requirements — your placement</div>` +
+    `<div class="hq-title">Zone Requirements — your placement ${infoBtn('requirements', 'zone requirements')}</div>` +
     `<p class="tagline">${reqSel ? 'Now click a constituency without a requirement.' : 'Pick a card to pin on a constituency.'}</p>` +
     `<div id="req-hand">` +
     hand
@@ -1402,7 +1564,7 @@ function renderObjective() {
   const show = !!obj && state.phase !== 'GAME_OVER';
   el.classList.toggle('hidden', !show);
   if (!show) return;
-  el.innerHTML = `<div class="hq-title">🎯 Secret Objective</div>
+  el.innerHTML = `<div class="hq-title">🎯 Secret Objective ${infoBtn('objective', 'secret objectives')}</div>
     <div class="objective-title">${esc(obj.title)}</div>
     <div class="objective-text">${esc(obj.text)}</div>
     <div class="objective-bonus">Worth +${obj.bonus} at the count — only you can see this.</div>`;
@@ -1443,7 +1605,7 @@ function renderTradeOffers() {
     })
     .join('');
   el.innerHTML =
-    '<div class="hq-title">Trade Offers</div>' +
+    `<div class="hq-title">Trade Offers ${infoBtn('trade', 'trading')}</div>` +
     coalitionHtml +
     offers
       .map((o) => {
@@ -1499,7 +1661,7 @@ function renderConspiracies() {
   el.classList.toggle('hidden', !show);
   if (!show) return;
 
-  let html = '<div class="hq-title">Conspiracies</div>';
+  let html = `<div class="hq-title">Conspiracies ${infoBtn('conspiracies', 'conspiracies')}</div>`;
 
   if (state.yourPeek && state.yourPeek.card && isMyTurn()) {
     const c = state.yourPeek.card;
@@ -1531,9 +1693,16 @@ function renderConspiracies() {
       // Your window: your ACTION/GERRYMANDER, or — for bystanders — the POLICY window.
       const playable =
         state.youMayPlayConspiracy && !c.reaction && !conspiracyPlay && !state.pendingReaction;
+      const ex = explainConspiracy(c);
       return `<div class="conspiracy-card ${c.reaction ? 'reaction' : ''}">
         <div class="cons-title">${esc(c.title)}</div>
-        <div class="cons-text">${esc(c.text)}</div>
+        ${ex ? `<div class="cons-does">${esc(ex.does)}</div>` : ''}
+        <details class="cons-more" data-cons="${c.id}" ${consExpanded.has(c.id) ? 'open' : ''}>
+          <summary>${ex ? 'Why play it' : 'Flavour'}</summary>
+          ${ex ? `<p class="cons-why">${esc(ex.why)}</p>` : ''}
+          ${ex && ex.when ? `<p class="cons-why">${esc(ex.when)}</p>` : ''}
+          <p class="cons-text">${esc(c.text)}</p>
+        </details>
         ${
           c.reaction
             ? '<div class="cons-tag">REACTION — plays when targeted</div>'
@@ -1576,6 +1745,9 @@ function renderConspiracies() {
   }
 
   el.innerHTML = html;
+  el.querySelectorAll('details[data-cons]').forEach((d) => {
+    d.ontoggle = () => (d.open ? consExpanded.add(d.dataset.cons) : consExpanded.delete(d.dataset.cons));
+  });
 
   el.querySelectorAll('[data-play]').forEach((b) => {
     b.onclick = () => startConspiracyPlay(b.dataset.play);
@@ -1629,6 +1801,70 @@ function renderConspiracies() {
 function myDebt() {
   const my = me();
   return !!(my && my.iou && my.iou.debt > 0);
+}
+
+// Plain-language rules for a conspiracy card, derived from its effect so the wording
+// can't drift from what the engine does. `does` is the rule; `why` is when it's worth it.
+function explainConspiracy(card) {
+  const e = card.effect || {};
+  const res = (m) => Object.entries(m).map(([r, n]) => `${n} ${RES_LABELS[r]}`).join(' + ');
+  const x = {
+    steal: {
+      does: `Pick an opponent and a resource. Take up to ${e.n} of it from them and add it to yours.`,
+      why: `A ${e.n * 2}-point swing: they lose what you gain. Rob the rival sitting on the resource you're short of.`,
+    },
+    burn: {
+      does:
+        card.target === 'self'
+          ? `You lose up to ${e.n} of whichever resource you hold the most of.`
+          : `Pick an opponent. They lose up to ${e.n} of whichever resource they hold the most of. Nobody gets it.`,
+      why: 'Knock a leader below the price of the voter card or conspiracy they are saving for.',
+    },
+    removePeg: {
+      does: "Remove one opponent voter from the board. Voters in a zone they hold majority in, Volatile Area voters and coalition voters are protected.",
+      why: 'Aim at a zone where a rival is one voter short of majority. It sets them back a whole buy.',
+    },
+    convertPeg: {
+      does: "Turn one opponent voter into yours, in place. Same protections as removal: majority, Volatile Area and coalition voters are safe.",
+      why: 'Counts twice: they lose a voter and you gain one. Can hand you the majority in a tight zone.',
+    },
+    blockZone: {
+      does: 'Freeze a constituency for one full round. Nobody can gerrymander voters into or out of it.',
+      why: "Shields a zone you're contesting from a rival who holds the majority next door.",
+    },
+    peekVoter: {
+      does: 'Privately see the next voter card before it reaches the Market.',
+      why: "Plan your next buy, or decide whether it's worth cycling a Market card.",
+    },
+    gain: {
+      does: `Gain ${res(e.resources || {})} straight away.`,
+      why: 'Guaranteed value and nobody can cancel it. Good for topping up to an expensive voter card.',
+    },
+    cycleHq: {
+      does: 'Discard one voter card from the Market and replace it with the top of the deck.',
+      why: 'Deny a rival the card they can afford, or fish for one that matches your resources.',
+    },
+    drawConspiracy: {
+      does: `Draw ${e.n} more conspiracy card${e.n === 1 ? '' : 's'} for free.`,
+      why: 'Card advantage: one card becomes two. Pays off if either one is useful.',
+    },
+    addPegs: {
+      does: `Place ${e.n} free voter${e.n === 1 ? '' : 's'} of yours in any constituency with room.`,
+      why: 'Free board presence, wherever it matters most.',
+    },
+    cancel: {
+      does: 'Keep it in hand. When an opponent targets you with a cancellable conspiracy, play this to cancel it. Both cards are discarded.',
+      why: "You can't play it on your own turn. It only stops cards marked Cancellable.",
+    },
+  }[e.type];
+  if (!x) return null;
+  let when = '';
+  if (!card.reaction) {
+    when = card.cancellable
+      ? 'Cancellable: the target can block it with a Reaction card.'
+      : "Can't be cancelled.";
+  }
+  return { ...x, when };
 }
 
 function targetHint(target) {
@@ -1699,24 +1935,22 @@ function renderElites() {
   const catalog = state.eliteCatalog || [];
   if (!my || catalog.length === 0) return el.classList.add('hidden');
   const active = new Set(my.elites || []);
-  const flowing = !!eliteMode || insurgentMoves.length > 0 || oracleSel;
   // Near-miss: not active but I already meet at least one of its ideology thresholds.
   const nearMiss = catalog.filter((e) => {
     if (active.has(e.id) || e.special === 'maverick') return false;
     return Object.entries(e.requires).some(([i, l]) => my.manifesto[i] >= l);
   });
-  const show = active.size > 0 || nearMiss.length > 0 || eliteExpanded || flowing;
-  el.classList.toggle('hidden', !show);
-  if (!show) return;
+  // Always visible (header + catalogue link) so new players can discover elites early.
+  el.classList.remove('hidden');
 
-  let html = `<div class="hq-title">Elites <button id="elite-toggle" class="link-btn">${
+  let html = `<div class="hq-title">Elites ${infoBtn('elites', 'elites')} <button id="elite-toggle" class="link-btn">${
     eliteExpanded ? 'hide catalogue' : 'show catalogue'
   }</button></div>`;
 
   // My active elites (gold), with power controls where invocable.
   for (const e of catalog.filter((c) => active.has(c.id))) {
     html += `<div class="elite-card mine">
-      <div class="cons-title">👑 ${esc(e.title)}</div>
+      <div class="cons-title">👑 ${esc(e.title)} ${infoBtn('elite:' + e.id, e.title)}</div>
       <div class="cons-text">${esc(e.text)}</div>
       ${elitePowerControls(e, my)}
     </div>`;
@@ -1730,7 +1964,7 @@ function renderElites() {
       .map((e) => {
         const miss = eliteMissing(e, my);
         return `<div class="elite-card ${miss.length ? '' : 'eligible'}">
-          <div class="cons-title">${esc(e.title)}</div>
+          <div class="cons-title">${esc(e.title)} ${infoBtn('elite:' + e.id, e.title)}</div>
           <div class="elite-req">${esc(eliteReqText(e))}</div>
           ${miss.length ? `<div class="cons-tag">needs ${esc(miss.join(', '))}</div>` : ''}
         </div>`;
@@ -2138,6 +2372,9 @@ function renderAuction() {
 function renderReaction() {
   const pr = state.pendingReaction;
   $('reaction-text').textContent = `${pr.byName} played ${pr.conspiracyTitle} on you. Cancel it with a reaction card, or let it happen.`;
+  const ex = pr.conspiracyEffect && explainConspiracy({ effect: pr.conspiracyEffect, target: pr.conspiracyTarget });
+  $('reaction-explain').textContent = ex ? `What it does: ${ex.does}` : '';
+  $('reaction-explain').classList.toggle('hidden', !ex);
   const reactions = (state.yourConspiracies || []).filter((c) => c.reaction);
   $('reaction-cards').innerHTML = reactions
     .map(

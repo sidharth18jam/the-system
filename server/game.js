@@ -278,7 +278,10 @@ class SystemGame {
       this.ideologyDeck = shuffle(this.ideologyDiscard, this.rng);
       this.ideologyDiscard = [];
     }
-    return this.ideologyDeck.pop();
+    const card = this.ideologyDeck.pop();
+    // Coin-flip which answer shows as A, so position never gives away the ideology.
+    if (card && this.rng() < 0.5) return { ...card, option_a: card.option_b, option_b: card.option_a };
+    return card;
   }
 
   drawHeadlineCard() {
@@ -1067,6 +1070,8 @@ class SystemGame {
       };
       this.pendingReaction = {
         conspiracyTitle: card.title,
+        conspiracyEffect: card.effect, // lets the victim's client explain what's coming
+        conspiracyTarget: card.target,
         byId: caster.id,
         byName: caster.name,
         victimId: victim.id,
@@ -1099,6 +1104,8 @@ class SystemGame {
         this.reactionContext = ctx;
         this.pendingReaction = {
           conspiracyTitle: ctx.conspiracy.title,
+          conspiracyEffect: ctx.conspiracy.effect,
+          conspiracyTarget: ctx.conspiracy.target,
           byId: caster.id,
           byName: caster.name,
           victimId: victim.id,
