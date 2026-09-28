@@ -68,6 +68,7 @@ let setupBidAmount = 0; // 2 Player secret first-move bid (DD-26)
 let reqSel = null; // requirement card id mid-placement: awaiting a zone click
 let conspiracyPlay = null; // { card } mid-targeting: awaiting a target click
 let conspiracySeen = 0; // last lastConspiracy.key surfaced as a toast
+const consExpanded = new Set(); // conspiracy card ids whose explanation is open (survives re-render)
 let auctionBid = 0; // my in-progress bid amount in the auction modal
 let auctionKey = null; // identity of the current auction, to reset my bid input
 // Ideologue-power targeting in progress (DD-21).
@@ -1480,9 +1481,16 @@ function renderConspiracies() {
       // Your window: your ACTION/GERRYMANDER, or — for bystanders — the POLICY window.
       const playable =
         state.youMayPlayConspiracy && !c.reaction && !conspiracyPlay && !state.pendingReaction;
+      const ex = explainConspiracy(c);
       return `<div class="conspiracy-card ${c.reaction ? 'reaction' : ''}">
         <div class="cons-title">${esc(c.title)}</div>
-        <div class="cons-text">${esc(c.text)}</div>
+        ${ex ? `<div class="cons-does">${esc(ex.does)}</div>` : ''}
+        <details class="cons-more" data-cons="${c.id}" ${consExpanded.has(c.id) ? 'open' : ''}>
+          <summary>${ex ? 'Why play it' : 'Flavour'}</summary>
+          ${ex ? `<p class="cons-why">${esc(ex.why)}</p>` : ''}
+          ${ex && ex.when ? `<p class="cons-why">${esc(ex.when)}</p>` : ''}
+          <p class="cons-text">${esc(c.text)}</p>
+        </details>
         ${
           c.reaction
             ? '<div class="cons-tag">REACTION — plays when targeted</div>'
@@ -1525,6 +1533,9 @@ function renderConspiracies() {
   }
 
   el.innerHTML = html;
+  el.querySelectorAll('details[data-cons]').forEach((d) => {
+    d.ontoggle = () => (d.open ? consExpanded.add(d.dataset.cons) : consExpanded.delete(d.dataset.cons));
+  });
 
   el.querySelectorAll('[data-play]').forEach((b) => {
     b.onclick = () => startConspiracyPlay(b.dataset.play);
@@ -1578,6 +1589,63 @@ function renderConspiracies() {
 function myDebt() {
   const my = me();
   return !!(my && my.iou && my.iou.debt > 0);
+}
+
+// Plain-language rules for a conspiracy card, derived from its effect so the wording
+// can't drift from what the engine does. `does` is the rule; `why` is when it's worth it.
+function explainConspiracy(card) {
+  const e = card.effect || {};
+  const res = (m) => Object.entries(m).map(([r, n]) => `${n} ${RES_LABELS[r]}`).join(' + ');
+  const x = {
+    steal: {
+      does: `Pick an opponent and a resource. Take up to ${e.n} of it from them and add it to yours.`,
+      why: `A ${e.n * 2}-point swing: they lose what you gain. Rob the rival sitting on the resource you're short of.`,
+    },
+    burn: {
+      does: `Pick an opponent. They lose up to ${e.n} of whichever resource they hold the most of. Nobody gets it.`,
+      why: 'Knock a leader below the price of the voter card or conspiracy they are saving for.',
+    },
+    removePeg: {
+      does: "Remove one opponent voter from the board. Voters in a zone they hold majority in, Volatile Area voters and coalition voters are protected.",
+      why: 'Aim at a zone where a rival is one voter short of majority. It sets them back a whole buy.',
+    },
+    convertPeg: {
+      does: "Turn one opponent voter into yours, in place. Same protections as removal: majority, Volatile Area and coalition voters are safe.",
+      why: 'Counts twice: they lose a voter and you gain one. Can hand you the majority in a tight zone.',
+    },
+    blockZone: {
+      does: 'Freeze a constituency for one full round. Nobody can gerrymander voters into or out of it.',
+      why: "Shields a zone you're contesting from a rival who holds the majority next door.",
+    },
+    peekVoter: {
+      does: 'Privately see the next voter card before it reaches the Market.',
+      why: "Plan your next buy, or decide whether it's worth cycling a Market card.",
+    },
+    gain: {
+      does: `Gain ${res(e.resources || {})} straight away.`,
+      why: 'Guaranteed value and nobody can cancel it. Good for topping up to an expensive voter card.',
+    },
+    cycleHq: {
+      does: 'Discard one voter card from the Market and replace it with the top of the deck.',
+      why: 'Deny a rival the card they can afford, or fish for one that matches your resources.',
+    },
+    drawConspiracy: {
+      does: `Draw ${e.n} more conspiracy cards for free.`,
+      why: 'Card advantage: one card becomes two. Pays off if either one is useful.',
+    },
+    cancel: {
+      does: 'Keep it in hand. When an opponent targets you with a cancellable conspiracy, play this to cancel it. Both cards are discarded.',
+      why: "You can't play it on your own turn. It only stops cards marked Cancellable.",
+    },
+  }[e.type];
+  if (!x) return null;
+  let when = '';
+  if (!card.reaction) {
+    when = card.cancellable
+      ? 'Cancellable: the target can block it with a Reaction card.'
+      : "Can't be cancelled.";
+  }
+  return { ...x, when };
 }
 
 function targetHint(target) {
@@ -2087,6 +2155,9 @@ function renderAuction() {
 function renderReaction() {
   const pr = state.pendingReaction;
   $('reaction-text').textContent = `${pr.byName} played ${pr.conspiracyTitle} on you. Cancel it with a reaction card, or let it happen.`;
+  const ex = pr.conspiracyEffect && explainConspiracy({ effect: pr.conspiracyEffect, target: pr.conspiracyTarget });
+  $('reaction-explain').textContent = ex ? `What it does: ${ex.does}` : '';
+  $('reaction-explain').classList.toggle('hidden', !ex);
   const reactions = (state.yourConspiracies || []).filter((c) => c.reaction);
   $('reaction-cards').innerHTML = reactions
     .map(

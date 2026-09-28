@@ -781,3 +781,12 @@ button.primary:hover { background: var(--ink-press); }
 
 /* Lobby invite QR — white quiet zone so phone cameras can read it on the dark theme */
 .lobby-qr { display: block; margin: 12px auto; background: #fff; padding: 8px; border-radius: 6px; }
+
+/* Conspiracy explanations: the rule is always visible; strategy + flavour tap to expand. */
+.cons-does { font-size: 0.74rem; line-height: 1.35; margin-bottom: 6px; }
+.cons-more { margin-bottom: 6px; }
+.cons-more summary { font-family: var(--mono); font-size: 0.66rem; font-weight: 700; color: var(--purple); cursor: pointer; padding: 2px 0; }
+.cons-why { font-size: 0.72rem; line-height: 1.35; margin: 4px 0; }
+.cons-more .cons-text { font-style: italic; margin: 4px 0 0; }
+.reaction-explain { font-size: 0.85rem; background: #efe9d6; border-left: 3px solid var(--purple); padding: 6px 10px; margin: 8px 0; }
+@media (max-width: 600px) { .conspiracy-card { width: 100%; } }

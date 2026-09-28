@@ -1067,6 +1067,8 @@ class SystemGame {
       };
       this.pendingReaction = {
         conspiracyTitle: card.title,
+        conspiracyEffect: card.effect, // lets the victim's client explain what's coming
+        conspiracyTarget: card.target,
         byId: caster.id,
         byName: caster.name,
         victimId: victim.id,
@@ -1099,6 +1101,8 @@ class SystemGame {
         this.reactionContext = ctx;
         this.pendingReaction = {
           conspiracyTitle: ctx.conspiracy.title,
+          conspiracyEffect: ctx.conspiracy.effect,
+          conspiracyTarget: ctx.conspiracy.target,
           byId: caster.id,
           byName: caster.name,
           victimId: victim.id,
