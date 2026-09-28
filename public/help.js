@@ -20,7 +20,8 @@ const HELP = {
       </ol>
       <p><b>The game ends</b> the moment every zone is captured, or when the board fills up —
       then everyone gets one final turn.</p>
-      <p>Trading is open during the active player's turn, so deal with them while it's their go.</p>`,
+      <p>Trading is open during the active player's turn, so deal with them while it's their go.</p>
+      <p><button class="link-btn" data-walkthrough>New to the game? Replay the walkthrough</button></p>`,
   },
   players: {
     see: ['perks', 'elites', 'auction'],
@@ -291,5 +292,111 @@ const HELP = {
     body: `<p>In this mode each constituency has a power. Whoever holds its majority may use it once
       a turn during their action or gerrymander phase. Powers marked <i>(auto)</i> fire on their own at
       the end of the holder's turn if not used.</p>`,
+  },
+};
+
+// First-time player walkthrough: the whole game in six cards, reachable from the home
+// screen, the lobby and the "How to win" sheet. Each card is one idea; the ⓘ sheets
+// above hold the detail.
+/* exported WALKTHROUGH */
+const WALKTHROUGH = [
+  {
+    kicker: 'The goal',
+    title: 'Win the most seats',
+    body: `
+      <p>The board has <b>9 constituencies</b>. Each shows a <b>majority number</b>.</p>
+      <p>Get that many of your voters into a zone and you <b>capture</b> it. At the end, every zone
+      you hold scores its majority number. Highest total wins.</p>
+      <p>The game ends when every zone is captured, or when the board fills up and everyone has
+      had one final turn.</p>`,
+  },
+  {
+    kicker: 'Your turn',
+    title: 'Four beats, every turn',
+    body: `
+      <ol>
+        <li><b>Answer a policy question.</b> Pick the answer you like — it pays resources.</li>
+        <li><b>Act.</b> Buy voter cards, place voters, trade, use powers. Then <b>End Turn</b>.</li>
+        <li><b>Gerrymander</b> — only if you hold a majority: shift voters around it.</li>
+        <li><b>Headlines</b> — news events hit anyone who landed in a risky ⚡ seat.</li>
+      </ol>
+      <p>The banner at the top always says whose turn it is and what happens now.</p>`,
+  },
+  {
+    kicker: 'Buying voters',
+    title: 'The Market',
+    body: `
+      <p>You have four resources: <b class="wt-funds">Funds</b>, <b class="wt-clout">Clout</b>,
+      <b class="wt-media">Buzz</b> and <b class="wt-trust">Trust</b>.</p>
+      <p>Three voter cards sit in the Market. {Tap} one you can afford, then {tap} a
+      constituency — all its voters go there.</p>
+      <p><b>Tip:</b> bigger cards are cheaper per voter; small ones finish a majority exactly.
+      You can hold at most <b>12</b> resources, so don't hoard.</p>`,
+  },
+  {
+    kicker: 'The table',
+    title: 'Every turn is a negotiation',
+    body: `
+      <p>You'll rarely have the exact mix a card costs. <b>Trade</b> with whoever's turn it is —
+      offers don't have to be equal, just agreed.</p>
+      <p>In 3+ player games, two rivals can form a <b>coalition</b> to share a zone neither can
+      take alone.</p>
+      <p>Most of this game is played in the deals, not the dice. Talk.</p>`,
+  },
+  {
+    kicker: 'Your identity',
+    title: 'Answers build your manifesto',
+    body: `
+      <p>Every policy answer adds a card to your <b>manifesto</b>: Mogul, Boss, Icon or Believer.</p>
+      <p><b>3 or 5</b> cards in one ideology unlock powers. Certain mixes switch on an
+      <b>elite</b> — a strong identity that turns on by itself.</p>
+      <p><b>Careful:</b> most elites need you to <i>never</i> take one ideology. Cards never go away,
+      so one answer can close a door for good.</p>`,
+  },
+  {
+    kicker: 'Dirty tricks',
+    title: 'Politics is not polite',
+    body: `
+      <p><b>Conspiracies</b> are hidden cards that hurt a rival. Buy them blind; play them on your
+      turn or while someone else's question is open.</p>
+      <p><b>⚡ Volatile Areas</b> get you into a nearly full zone — but draw a Headline.</p>
+      <p><b>Gerrymandering</b> lets a majority holder drag rivals' voters out, or trap them in a ⚡ seat.</p>
+      <p class="wt-ready">Stuck mid-game? Every panel has an <span class="wt-i">i</span> that explains
+      it, and your first few turns come with tips.</p>`,
+  },
+];
+
+// In-game coaching: one short tip the first time a player meets each moment of play.
+// Shown beside the table, never over it — the game doesn't wait for a tip to be read.
+// `target` is the element it points at; `more` is the ⓘ sheet for the full rule.
+/* exported COACH */
+const COACH = {
+  policy: {
+    target: 'policy-options',
+    title: 'Your first question',
+    body: `Pick the answer you agree with. It pays resources <b>and</b> adds a card to your
+      manifesto, which unlocks powers later. Rewards stay hidden until you choose.`,
+    more: 'policy',
+  },
+  action: {
+    target: 'hq-mat',
+    title: 'Time to buy voters',
+    body: `{Tap} a voter card you can afford, then {tap} a constituency to place its voters.
+      Buy as many as you can pay for, then press <b>End Turn</b>.`,
+    more: 'market',
+  },
+  gerrymander: {
+    target: 'board',
+    title: 'You hold a majority',
+    body: `You get one move per majority. {Tap} a voter in or next to your zone, then {tap}
+      where it goes. Rivals' voters count too. Or skip it.`,
+    more: 'gerrymander',
+  },
+  watch: {
+    target: 'players-panel',
+    title: 'Not your turn — still your game',
+    body: `It's <b>{active}</b>'s turn. You can propose a trade with them now, and keep an eye on
+      everyone's resources here. The Campaign Trail logs every move.`,
+    more: 'trade',
   },
 };
