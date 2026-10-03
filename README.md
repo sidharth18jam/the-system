@@ -73,11 +73,12 @@ not in isolated turns.
 **Full rule set is implemented and playable.** Trading, gerrymandering, majority breaking,
 headlines/volatile areas, conspiracies, IOU + auctions, manifesto perks, elite powers, and
 four selectable game modes (Coalitions, Home Turfs, Hidden Objectives, 2-Player) are all
-built and covered by automated tests.
+built and covered by automated tests. Players can talk in **chat** — table talk for the
+whole room plus a private line to each player, in the lobby and in-game (💬 bottom-right,
+or the 💬 on any rival's dossier).
 
 **What's left before this is a polished product:**
 - **Edge of Chaos mode** — not yet built.
-- **In-game chat** — group + private one-to-one channels alongside the game log.
 - **UX overhaul** — elaborate player mats, in-app rules explanations,
   visible timers, board change highlights — aimed at players who don't already know the
   game by heart.
@@ -128,6 +129,7 @@ restarts.
 |---|---|
 | `server/game.js` | The authoritative rules engine — pure logic, no networking |
 | `server/index.js` | Rooms, Socket.IO wiring, reconnect handling |
+| `server/chat.js` | Room chat: table + private channels, validation, rate limit |
 | `public/` | Browser client (HTML/CSS/vanilla JS) |
 | `data/*.json` | Card decks, zones, modes data — original content |
 | `test/` | Bot-simulation, rule-invariant, and end-to-end socket tests |

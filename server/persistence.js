@@ -23,6 +23,8 @@ function scheduleSave(rooms, getPidCounter) {
           hostToken: room.hostToken,
           players: [...room.players.values()].map((p) => ({ token: p.token, pid: p.pid, name: p.name })),
           game: room.game ? room.game.snapshot() : null,
+          chat: room.chat || [],
+          chatSeq: room.chatSeq || 0,
         })),
       };
       fs.writeFileSync(STATE_FILE, JSON.stringify(data));
@@ -54,6 +56,8 @@ function loadState() {
         hostToken: r.hostToken,
         players,
         game: r.game ? SystemGame.restore(r.game) : null,
+        chat: r.chat || [],
+        chatSeq: r.chatSeq || 0,
       });
     }
     console.log(`persistence: restored ${rooms.size} room(s) from ${STATE_FILE}`);

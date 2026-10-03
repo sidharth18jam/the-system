@@ -5,7 +5,7 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
-    "test": "node test/simulate.js && node test/phase2.js && node test/phase3.js && node test/phase4.js && node test/coalitions.js && node test/phase5-modes.js && node test/policy-balance.js && node test/persistence.js && node test/client-render.js && node test/socket-smoke.js"
+    "test": "node test/simulate.js && node test/phase2.js && node test/phase3.js && node test/phase4.js && node test/coalitions.js && node test/phase5-modes.js && node test/policy-balance.js && node test/persistence.js && node test/client-render.js && node test/chat.js && node test/socket-smoke.js"
   },
   "engines": {
     "node": ">=18"

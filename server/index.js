@@ -6,6 +6,7 @@ const { Server } = require('socket.io');
 const QRCode = require('qrcode');
 const { SystemGame } = require('./game');
 const { scheduleSave, loadState } = require('./persistence');
+const { postMessage, chatHistory, canSee } = require('./chat');
 
 const app = express();
 app.use(express.static(path.join(__dirname, '../public')));
@@ -58,6 +59,7 @@ function lobbyState(room) {
     code: room.code,
     started: !!room.game,
     players: [...room.players.values()].map((p) => ({
+      id: p.pid,
       name: p.name,
       connected: p.connected,
       isHost: p.token === room.hostToken,
@@ -75,6 +77,20 @@ function sendState(room, p, lobby) {
   const base = room.game ? room.game.serialize(p.pid) : lobby || lobbyState(room);
   const payload = { ...base, you: p.pid, youAreHost: p.token === room.hostToken };
   s.emit(room.game ? 'gameState' : 'lobbyState', payload);
+}
+
+// Chat history goes to one seat on (re)join or resync; new lines go only to the seats that
+// may read them (everyone for table talk, the two ends for a private line).
+function sendChatHistory(room, p) {
+  const s = p.connected && io.sockets.sockets.get(p.socketId);
+  if (s) s.emit('chatHistory', chatHistory(room, p.pid));
+}
+function deliverChat(room, msg) {
+  for (const p of room.players.values()) {
+    if (!p.connected || !canSee(msg, p.pid)) continue;
+    const s = io.sockets.sockets.get(p.socketId);
+    if (s) s.emit('chatMsg', msg);
+  }
 }
 
 function broadcast(room) {
@@ -182,6 +198,8 @@ io.on('connection', (socket) => {
         [token, { token, pid: makePid(), name: name.trim().slice(0, 20), socketId: socket.id, connected: true }],
       ]),
       game: null,
+      chat: [],
+      chatSeq: 0,
     };
     rooms.set(code, room);
     myRoom = room;
@@ -205,6 +223,7 @@ io.on('connection', (socket) => {
       socket.join(room.code);
       ack && ack({ ok: true, code: room.code, token });
       broadcast(room);
+      sendChatHistory(room, p);
       return;
     }
 
@@ -228,6 +247,7 @@ io.on('connection', (socket) => {
     socket.join(room.code);
     ack && ack({ ok: true, code: room.code, token: newToken });
     broadcast(room);
+    sendChatHistory(room, room.players.get(newToken));
   });
 
   socket.on('startGame', (payload) => {
@@ -362,7 +382,25 @@ io.on('connection', (socket) => {
   // that it saw every push while the tab was frozen. Answers only the asker.
   socket.on('resync', () => {
     const p = myPlayer();
-    if (p && p.socketId === socket.id) sendState(myRoom, p);
+    if (p && p.socketId === socket.id) {
+      sendState(myRoom, p);
+      sendChatHistory(myRoom, p);
+    }
+  });
+
+  // Chat (lobby and in-game): to = null for the whole table, or a player id for a private line.
+  socket.on('chatSend', (payload, ack) => {
+    const reply = typeof ack === 'function' ? ack : () => {};
+    const p = myPlayer();
+    if (!p) return reply({ ok: false, error: 'Not in a room' });
+    try {
+      const msg = postMessage(myRoom, p, payload && payload.to != null ? payload.to : null, payload && payload.text);
+      deliverChat(myRoom, msg);
+      persist();
+      reply({ ok: true, id: msg.id });
+    } catch (e) {
+      reply({ ok: false, error: e.message });
+    }
   });
 
   socket.on('playAgain', () => {
