@@ -295,6 +295,21 @@
       <button id="coach-off" class="link-btn">Turn off tips</button>
     </div>
   </div>
+  <!-- Chat: table talk for everyone + a private line to each player. Lobby and in-game. -->
+  <button id="chat-fab" class="hidden" aria-label="Open chat" aria-controls="chat-panel" aria-expanded="false">💬<span id="chat-badge" class="hidden"></span></button>
+  <aside id="chat-panel" class="hidden" role="dialog" aria-label="Chat">
+    <div class="chat-head">
+      <span class="chat-title">Chat</span>
+      <button id="chat-close" class="modal-close" aria-label="Close chat">✕</button>
+    </div>
+    <div id="chat-tabs" role="tablist"></div>
+    <p id="chat-scope" class="chat-scope"></p>
+    <div id="chat-msgs" aria-live="polite"></div>
+    <form id="chat-form" autocomplete="off">
+      <input id="chat-input" maxlength="300" placeholder="Message the table…" enterkeyhint="send" />
+      <button type="submit" class="primary">Send</button>
+    </form>
+  </aside>
   <div id="toast" class="hidden"></div>
   <div id="notify-stack" aria-live="polite"></div>
   <div id="conn-status" class="hidden" role="status">Reconnecting… the table will catch up the moment you’re back.</div>

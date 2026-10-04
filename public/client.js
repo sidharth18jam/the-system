@@ -116,6 +116,8 @@ function show(screen) {
     $(s).classList.toggle('hidden', s !== screen)
   );
   if (screen !== 'screen-game') $('coach').classList.add('hidden');
+  $('chat-fab').classList.toggle('hidden', screen === 'screen-home');
+  if (screen === 'screen-home') closeChat();
 }
 function toast(msg) {
   const t = $('toast');
@@ -459,6 +461,7 @@ $('modal-info').addEventListener('click', (ev) => {
 document.addEventListener('keydown', (ev) => {
   const wtOpen = !$('modal-walkthrough').classList.contains('hidden');
   if (ev.key === 'Escape') {
+    if ($('modal-info').classList.contains('hidden') && !wtOpen) closeChat();
     closeInfo();
     if (wtOpen) closeWalkthrough();
   } else if (wtOpen && ev.key === 'ArrowRight') stepWalkthrough(1);
@@ -574,6 +577,186 @@ $('coach-off').onclick = () => {
   renderCoach();
 };
 
+// ---------- chat ----------
+// Table talk for everyone, plus a private line to each other player. The server only ever
+// sends this seat the lines it may read; the client sorts them into channels.
+const CHAT_KEEP = 300;
+let chatLog = []; // readable messages, oldest first
+let chatOpen = false;
+let chatChannel = 'all'; // 'all' or the other player's id
+let chatRoster = []; // other seats: { id, name, color, connected }
+let chatMyColor = null;
+let chatRead = {}; // channel → highest message id read; per room, survives reloads
+let chatReadRoom = null;
+
+const chatChannelOf = (m) => (m.to === null ? 'all' : m.from === myPid ? m.to : m.from);
+function loadChatRead() {
+  if (chatReadRoom === myRoomCode) return;
+  chatReadRoom = myRoomCode;
+  try {
+    chatRead = JSON.parse(store.get(`system_chat_read_${myRoomCode}`) || '{}') || {};
+  } catch {
+    chatRead = {};
+  }
+}
+function markChatRead(ch) {
+  const last = chatLog.filter((m) => chatChannelOf(m) === ch).pop();
+  if (!last || (chatRead[ch] || 0) >= last.id) return;
+  chatRead[ch] = last.id;
+  store.set(`system_chat_read_${myRoomCode}`, JSON.stringify(chatRead));
+}
+function chatUnread(ch) {
+  return chatLog.filter((m) => m.from !== myPid && chatChannelOf(m) === ch && m.id > (chatRead[ch] || 0)).length;
+}
+const chatVisible = (ch) => chatOpen && chatChannel === ch && !isHidden();
+
+// Called with whichever player list is current (lobby or game).
+function setChatRoster(players) {
+  const self = players.find((p) => p.id === myPid);
+  chatMyColor = (self && self.color) || null;
+  chatRoster = players
+    .filter((p) => p.id && p.id !== myPid)
+    .map((p) => ({ id: p.id, name: p.name, color: p.color || null, connected: p.connected !== false }));
+  if (chatChannel !== 'all' && !chatRoster.some((p) => p.id === chatChannel)) chatChannel = 'all';
+  renderChat();
+}
+
+function chatName(id, fallback) {
+  if (id === myPid) return 'You';
+  const p = chatRoster.find((x) => x.id === id);
+  return p ? p.name : fallback;
+}
+function chatColor(id) {
+  if (id === myPid) return chatMyColor;
+  const p = chatRoster.find((x) => x.id === id);
+  return p && p.color;
+}
+const chatTime = (ts) => {
+  const d = new Date(ts);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
+
+function renderChat() {
+  loadChatRead();
+  if (chatVisible(chatChannel)) markChatRead(chatChannel);
+  const channels = ['all', ...chatRoster.map((p) => p.id)];
+  const total = channels.reduce((n, ch) => n + chatUnread(ch), 0);
+  const badge = $('chat-badge');
+  badge.textContent = total > 99 ? '99+' : String(total);
+  badge.classList.toggle('hidden', total === 0);
+  $('chat-fab').setAttribute('aria-label', total ? `Open chat (${total} unread)` : 'Open chat');
+  $('chat-fab').setAttribute('aria-expanded', String(chatOpen));
+  $('chat-panel').classList.toggle('hidden', !chatOpen);
+  if (!chatOpen) return;
+
+  const unreadTag = (ch) => {
+    const n = chatUnread(ch);
+    return n ? `<span class="chat-unread">${n}</span>` : '';
+  };
+  $('chat-tabs').innerHTML =
+    `<button class="chat-tab ${chatChannel === 'all' ? 'on' : ''}" role="tab" aria-selected="${chatChannel === 'all'}" data-chat-ch="all">Table${unreadTag('all')}</button>` +
+    chatRoster
+      .map(
+        (p) =>
+          `<button class="chat-tab ${p.color ? `chat-c-${p.color}` : ''} ${chatChannel === p.id ? 'on' : ''} ${
+            p.connected ? '' : 'offline'
+          }" role="tab" aria-selected="${chatChannel === p.id}" data-chat-ch="${esc(p.id)}" title="Private chat with ${esc(p.name)}">🔒 ${esc(p.name)}${unreadTag(p.id)}</button>`
+      )
+      .join('');
+  const peer = chatRoster.find((p) => p.id === chatChannel);
+  $('chat-scope').textContent = peer
+    ? `Private — only you and ${peer.name} can read this.${peer.connected ? '' : ' They’re offline; they’ll see it when they’re back.'}`
+    : 'Table talk — everyone in the room can read this.';
+  $('chat-input').placeholder = peer ? `Message ${peer.name} privately…` : 'Message the table…';
+
+  const lines = chatLog.filter((m) => chatChannelOf(m) === chatChannel);
+  const box = $('chat-msgs');
+  const atBottom = !box.scrollHeight || box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  box.innerHTML = lines.length
+    ? lines
+        .map((m) => {
+          const mine = m.from === myPid;
+          const color = chatColor(m.from);
+          return `<div class="chat-line ${mine ? 'mine' : ''} ${color && !mine ? `chat-c-${color}` : ''}">
+            <span class="chat-who ${color ? `chat-n-${color}` : ''}">${esc(chatName(m.from, m.fromName))}<span class="chat-when">${chatTime(m.ts)}</span></span>${esc(m.text)}</div>`;
+        })
+        .join('')
+    : `<p class="chat-empty">${
+        peer
+          ? `Nothing yet. Cut a deal with ${esc(peer.name)} that the table won’t hear about.`
+          : 'No table talk yet. Offers, threats and alibis go here.'
+      }</p>`;
+  if (atBottom) box.scrollTop = box.scrollHeight;
+  $('chat-tabs')
+    .querySelectorAll('[data-chat-ch]')
+    .forEach((b) => (b.onclick = () => openChat(b.dataset.chatCh)));
+}
+
+function openChat(ch) {
+  chatOpen = true;
+  if (ch) chatChannel = ch;
+  renderChat();
+  const box = $('chat-msgs');
+  box.scrollTop = box.scrollHeight;
+  if (!isPhone()) $('chat-input').focus && $('chat-input').focus();
+}
+function closeChat() {
+  if (!chatOpen) return;
+  chatOpen = false;
+  renderChat();
+}
+
+function renderChatSeats() {
+  setChatRoster(state.players);
+  placeChatFab();
+}
+
+// Portrait phones dock the action bar to the bottom; keep the chat button above it.
+function placeChatFab() {
+  const bar = $('action-bar');
+  const docked =
+    mq('(max-width: 600px) and (min-height: 501px)') &&
+    !$('screen-game').classList.contains('hidden') &&
+    !bar.classList.contains('idle');
+  $('chat-fab').style.bottom = docked ? `${(bar.offsetHeight || 0) + 12}px` : '';
+}
+
+socket.on('chatHistory', (list) => {
+  chatLog = Array.isArray(list) ? list.slice(-CHAT_KEEP) : [];
+  renderChat();
+});
+socket.on('chatMsg', (m) => {
+  if (!m || chatLog.some((x) => x.id === m.id)) return;
+  chatLog.push(m);
+  if (chatLog.length > CHAT_KEEP) chatLog.shift();
+  const ch = chatChannelOf(m);
+  if (m.from !== myPid && !chatVisible(ch)) {
+    // Private lines are worth a card; table chatter only bumps the badge (and the tab title).
+    if (m.to !== null) notify(`💬 ${m.fromName} (private): ${m.text.slice(0, 80)}`, false);
+    else if (isHidden()) {
+      unseen++;
+      updateTitle();
+    }
+  }
+  renderChat();
+});
+
+$('chat-fab').onclick = () => (chatOpen ? closeChat() : openChat());
+$('chat-close').onclick = closeChat;
+$('chat-form').onsubmit = (ev) => {
+  if (ev && ev.preventDefault) ev.preventDefault();
+  const input = $('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  socket.emit('chatSend', { to: chatChannel === 'all' ? null : chatChannel, text }, (res) => {
+    if (res && res.ok) return;
+    if (!input.value) input.value = text; // give the words back rather than lose them
+    toast((res && res.error) || 'Message not sent');
+  });
+};
+if (typeof window.addEventListener === 'function') window.addEventListener('resize', placeChatFab);
+
 // ---------- home ----------
 $('btn-join').onclick = () => {
   socket.emit(
@@ -630,6 +813,7 @@ function resume() {
 document.addEventListener('visibilitychange', () => {
   if (isHidden()) return;
   clearAttention();
+  renderChat();
   resume();
 });
 if (typeof window.addEventListener === 'function') {
@@ -699,6 +883,7 @@ socket.on('lobbyState', (lobby) => {
     sel.disabled = false;
   }
   $('lobby-wait').classList.toggle('hidden', myIsHost);
+  setChatRoster(lobby.players);
 });
 
 // ---------- game state ----------
@@ -803,6 +988,7 @@ const PANELS = [
   renderLog,
   renderModals,
   renderCoach,
+  renderChatSeats,
 ];
 const renderFailures = []; // read by the headless test harness
 function render() {
@@ -1225,7 +1411,7 @@ function renderPlayers() {
       const cap = p.cap || state.resourceCap;
       return `<div class="player-card border-${p.color} ${active ? 'active' : ''} ${targetable ? 'targetable' : ''}" data-target-player="${targetable ? p.id : ''}">
         ${active && state.phase !== 'GAME_OVER' ? '<div class="turn-tag">▶ On the clock</div>' : ''}
-        <div class="pname">${esc(p.name)} ${p.id === myPid ? '<span class="you-tag">YOU</span>' : ''} ${badges}</div>
+        <div class="pname">${esc(p.name)} ${p.id === myPid ? '<span class="you-tag">YOU</span>' : `<button class="dm-btn" data-dm="${p.id}" title="Private chat with ${esc(p.name)}" aria-label="Private chat with ${esc(p.name)}">💬</button>`} ${badges}</div>
         <div class="score-row"><span title="Constituencies held"><b>${zonesHeld}</b> zone${zonesHeld === 1 ? '' : 's'}</span> · <span title="Voters on the map"><b>${voters}</b> voter${voters === 1 ? '' : 's'}</span></div>
         <div class="res-row">
           ${RES_KEYS.map((r) => resChip(r, p.resources[r])).join('')}
@@ -1235,6 +1421,14 @@ function renderPlayers() {
       </div>`;
     })
     .join('');
+  $('players-panel')
+    .querySelectorAll('[data-dm]')
+    .forEach((b) => {
+      b.onclick = (ev) => {
+        ev.stopPropagation();
+        openChat(b.dataset.dm);
+      };
+    });
   if (pickPlayer) {
     document.querySelectorAll('[data-target-player]').forEach((el) => {
       if (!el.dataset.targetPlayer) return;

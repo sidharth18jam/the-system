@@ -75,16 +75,39 @@ headlines/volatile areas, conspiracies, IOU + auctions, manifesto perks, elite p
 four selectable game modes (Coalitions, Home Turfs, Hidden Objectives, 2-Player) are all
 built and covered by automated tests.
 
-**What's left before this is a polished product:**
+### Playing together
+
+- **Chat** — a **Table** channel the whole room reads, plus a **private line** to each
+  player for side deals. Works in the lobby and in-game: open it from the 💬 button
+  (bottom-right) or the 💬 on any rival's dossier. Private lines are only ever sent to
+  their two ends, history comes back when you reconnect, and an unread badge shows what
+  you've missed.
+- **Phones first** — board and Market on one screen, a docked action bar in portrait,
+  a side-by-side layout in landscape, and touch-sized targets throughout.
+- **Easy to join** — a 4-letter room code, a scannable invite QR, and a share link.
+- **Never lose your seat** — reconnects automatically after a dropped connection, a
+  locked screen or a closed tab; lobby seats are held for 90 seconds.
+- **Notifications** — your turn, offers to you, conspiracies aimed at you and private
+  messages appear as alert cards, count up in the tab title while you're away, and can
+  raise an opt-in system notification (🔔).
+- **Nobody stalls the table** — reactions, auctions and setup steps time out and
+  auto-resolve if a player goes quiet.
+
+### Learning the game
+
+- **How to play** — a two-minute walkthrough, from the home screen or the lobby.
+- **ⓘ on everything** — every panel, modal and card opens a plain-language rule sheet,
+  including one per elite and home turf.
+- **Coach tips** — a one-time pointer the first time you meet each part of a turn.
+
+### What's left before this is a polished product
+
 - **Edge of Chaos mode** — not yet built.
-- **In-game chat** — group + private one-to-one channels alongside the game log.
-- **UX overhaul** — elaborate player mats, in-app rules explanations,
-  visible timers, board change highlights — aimed at players who don't already know the
-  game by heart.
 - **Art** — all card content (150 policy cards, 36 headlines, 24 conspiracies, 13 elites,
   34 voter cards) is original text and in place; none of it has illustration/art yet.
-
-Manual multi-tab playtesting is next, then a merge to `main`.
+- **Chat moderation** — mute/block and reporting, needed before strangers play each other.
+- **Visible countdowns and board highlights** — timeouts run on the server but aren't
+  shown as a clock, and board changes are highlighted in the log, not on the map.
 
 ---
 
@@ -95,7 +118,8 @@ Manual multi-tab playtesting is next, then a merge to `main`.
   transport layer on top, so the engine is fully unit-testable without a network.
 - **Client:** Vanilla JS, no build step (`public/`).
 - **Persistence:** Debounced JSON snapshot to disk (`server/persistence.js`) so in-progress
-  games survive a server restart; players reconnect automatically via a session token.
+  games and chat history survive a server restart; players reconnect automatically via a
+  session token.
 
 ## Getting started
 
@@ -105,12 +129,13 @@ npm start          # serves the game on http://localhost:3000
 ```
 
 Open `http://localhost:3000` in 2–5 browser tabs (or devices on the same network), create
-a room, share the 4-letter code, and play.
+a room, share the 4-letter code or invite QR, and play. Settings (`PORT`, `STATE_FILE`)
+are listed in [`.env.example`](./.env.example).
 
 ### Running tests
 
 ```bash
-npm test           # full suite: bot-simulated games, rule invariants, modes, persistence, socket e2e
+npm test           # full suite: bot-simulated games, rule invariants, modes, persistence, chat, socket e2e
 ```
 
 ## Deploying
@@ -127,10 +152,12 @@ restarts.
 | File | Purpose |
 |---|---|
 | `server/game.js` | The authoritative rules engine — pure logic, no networking |
-| `server/index.js` | Rooms, Socket.IO wiring, reconnect handling |
-| `public/` | Browser client (HTML/CSS/vanilla JS) |
+| `server/index.js` | Rooms, Socket.IO wiring, reconnect handling, timeouts |
+| `server/chat.js` | Room chat: table + private channels, who may read what, limits |
+| `server/persistence.js` | Snapshot rooms (games + chat) to disk and restore on boot |
+| `public/` | Browser client (HTML/CSS/vanilla JS); rule sheets and walkthrough in `help.js` |
 | `data/*.json` | Card decks, zones, modes data — original content |
-| `test/` | Bot-simulation, rule-invariant, and end-to-end socket tests |
+| `test/` | Bot-simulation, rule-invariant, client-render, chat and end-to-end socket tests |
 
 ## Contributing
 

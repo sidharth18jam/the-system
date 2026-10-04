@@ -35,6 +35,8 @@ function makeEl(id) {
     querySelectorAll() { return []; },
     querySelector() { return null; },
     getAttribute() { return null; },
+    setAttribute() {},
+    focus() {},
     addEventListener() {},
     appendChild() {},
     onclick: null,

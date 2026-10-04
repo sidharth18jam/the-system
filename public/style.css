@@ -1038,3 +1038,65 @@ button.primary:hover { background: var(--ink-press); }
 @keyframes coach-pulse { 50% { outline-color: color-mix(in srgb, var(--yellow) 35%, transparent); } }
 @media (prefers-reduced-motion: reduce) { #coach, .coach-spot { animation: none; } }
 @media (max-width: 600px) and (min-height: 501px) { #wt-body { min-height: 0; } }
+
+/* ---------- Chat — table talk and private lines ----------
+   A drawer on the right (full screen on phones). It sits above the game's modals so a
+   deal can still be argued mid-auction, and below the rule sheets and toasts. */
+#chat-fab {
+  position: fixed; right: 16px; bottom: 16px; z-index: 71;
+  width: 52px; height: 52px; padding: 0; border-radius: 50%;
+  font-size: 1.35rem; line-height: 1;
+  background: var(--paper); box-shadow: 3px 3px 0 var(--ink-press);
+}
+#chat-badge {
+  position: absolute; top: -6px; right: -6px; min-width: 22px; height: 22px; padding: 0 5px;
+  border-radius: 11px; background: var(--red); color: var(--paper); border: 2px solid var(--paper);
+  font-family: var(--mono); font-size: 0.72rem; font-weight: 700; line-height: 18px; text-align: center;
+}
+#chat-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 72;
+  width: min(380px, 100vw);
+  display: flex; flex-direction: column;
+  background: var(--paper); border-left: 3px solid var(--ink);
+  box-shadow: -6px 0 18px rgba(29, 24, 64, 0.25);
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+}
+.chat-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.chat-title { font-family: var(--display); font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase; }
+#chat-panel .modal-close { position: static; }
+#chat-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; flex-shrink: 0; }
+.chat-tab {
+  flex: 0 0 auto; padding: 6px 10px; font-size: 0.8rem; white-space: nowrap;
+  border-width: 2px; border-left-width: 6px;
+}
+.chat-tab.on { background: var(--ink); color: var(--paper); }
+.chat-tab.offline { opacity: 0.6; }
+.chat-tab .chat-unread {
+  display: inline-block; margin-left: 6px; min-width: 18px; padding: 0 4px; border-radius: 9px;
+  background: var(--red); color: var(--paper); font-family: var(--mono); font-size: 0.7rem; text-align: center;
+}
+.chat-scope { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin: 2px 0 6px; }
+#chat-msgs {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  border: 2px solid var(--ink); padding: 8px; background: #f6f1e4;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.chat-line { max-width: 88%; align-self: flex-start; padding: 6px 9px; border: 1.5px solid var(--line); border-left: 5px solid var(--ink); background: var(--paper); border-radius: 2px; font-size: 0.88rem; line-height: 1.35; overflow-wrap: anywhere; }
+.chat-line.mine { align-self: flex-end; background: #ebe3c8; border-left-color: var(--line); border-right: 5px solid var(--ink); }
+.chat-line .chat-who { display: block; font-weight: 800; font-size: 0.75rem; }
+.chat-line .chat-when { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); margin-left: 6px; font-weight: 400; }
+.chat-empty { color: var(--muted); font-size: 0.85rem; text-align: center; margin: auto 0; padding: 12px; }
+#chat-form { display: flex; gap: 8px; margin-top: 8px; flex-shrink: 0; }
+#chat-input { flex: 1; min-width: 0; padding: 10px; border: 2px solid var(--ink); border-radius: 2px; background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 0.95rem; }
+#chat-form .primary { width: auto; margin: 0; }
+.dm-btn { padding: 0 6px; font-size: 0.75rem; border-width: 1.5px; margin-left: 4px; vertical-align: middle; }
+/* Ideology accents on chat names and tabs */
+.chat-c-green { border-left-color: var(--green) !important; } .chat-n-green { color: var(--green); }
+.chat-c-red { border-left-color: var(--red) !important; } .chat-n-red { color: var(--red); }
+.chat-c-blue { border-left-color: var(--blue) !important; } .chat-n-blue { color: var(--blue); }
+.chat-c-yellow { border-left-color: var(--yellow) !important; } .chat-n-yellow { color: #8a6800; }
+.chat-c-purple { border-left-color: var(--purple) !important; } .chat-n-purple { color: var(--purple); }
+@media (max-width: 600px), (max-height: 500px) {
+  #chat-panel { width: 100vw; border-left: 0; }
+  #chat-fab { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
+}
