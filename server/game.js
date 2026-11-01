@@ -752,10 +752,11 @@ class SystemGame {
     const offer = this.tradeOffers.find((o) => o.id === offerId);
     if (!offer) throw new Error('That offer is gone');
     if (offer.to !== playerId) throw new Error('This offer is not addressed to you');
-    this.tradeOffers = this.tradeOffers.filter((o) => o.id !== offerId);
     const from = this.getPlayer(offer.from);
     const to = this.getPlayer(offer.to);
+    const drop = () => (this.tradeOffers = this.tradeOffers.filter((o) => o.id !== offerId));
     if (!accept) {
+      drop();
       this.addLog(`${to.name} declined ${from.name}'s trade.`);
       return;
     }
@@ -763,8 +764,16 @@ class SystemGame {
     if (from.id !== this.activePlayer.id && to.id !== this.activePlayer.id) {
       throw new Error('Trades must involve the active player');
     }
-    if (!this.canAfford(from, offer.give)) throw new Error(`${from.name} no longer holds their side`);
+    // The proposer spent what they offered: the offer is dead. Drop it without throwing so the
+    // change is broadcast — a throw here left every client showing an offer the server had lost.
+    if (!this.canAfford(from, offer.give)) {
+      drop();
+      this.addLog(`${from.name}'s trade offer lapsed — they no longer hold their side.`);
+      return;
+    }
+    // The responder can't pay: keep the offer so they can still decline it.
     if (!this.canAfford(to, offer.want)) throw new Error('You do not hold what they asked for');
+    drop();
     const giveCards = this.cleanCardList(from, offer.giveCards);
     const wantCards = this.cleanCardList(to, offer.wantCards);
     for (const [r, n] of Object.entries(offer.give)) {
