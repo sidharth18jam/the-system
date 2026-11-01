@@ -95,6 +95,8 @@ button.primary:hover { background: var(--ink-press); }
   font-family: var(--body);
 }
 .home-box input::placeholder { color: var(--muted); }
+.credit { color: var(--muted); font-size: 0.72rem; line-height: 1.4; margin-top: 18px; }
+.credit a { color: var(--ink); }
 #code-input { text-transform: uppercase; letter-spacing: 4px; font-family: var(--mono); font-weight: 700; }
 .join-row { display: flex; gap: 8px; margin-top: 12px; }
 .join-row input { flex: 1; margin: 0; }
