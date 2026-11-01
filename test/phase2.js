@@ -170,7 +170,18 @@ function testTrading() {
 
   const o3 = g.proposeTrade(other.id, active.id, { clout: 1 }, { funds: 1 });
   other.resources.clout = 0; // proposer spends it before acceptance
-  expectThrow(() => g.respondTrade(active.id, o3.id, true), 'stale offer rejected at accept');
+  const fundsBefore = active.resources.funds;
+  g.respondTrade(active.id, o3.id, true);
+  assert(!g.tradeOffers.some((o) => o.id === o3.id), 'stale offer dropped at accept, not left dangling');
+  assert(active.resources.funds === fundsBefore && other.resources.clout === 0, 'stale offer moves nothing');
+  assert(g.log.some((l) => /lapsed/.test(l.text || l)), 'lapsed offer is logged');
+
+  // Responder short of what was asked: error, but the offer stays so they can still decline.
+  other.resources.clout = 1;
+  const o3b = g.proposeTrade(other.id, active.id, { clout: 1 }, { funds: 9 });
+  expectThrow(() => g.respondTrade(active.id, o3b.id, true), 'responder must hold what is asked');
+  assert(g.tradeOffers.some((o) => o.id === o3b.id), 'offer kept when the responder cannot pay');
+  g.respondTrade(active.id, o3b.id, false);
 
   // Cancel path + proposer-replaces-own-offer
   other.resources.clout = 3;
