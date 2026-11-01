@@ -4,15 +4,11 @@ A multiplayer web game of political-strategy area control: 2–5 players compete
 control of 9 electoral zones through resource management, trading, gerrymandering,
 conspiracies, and coalition-building — no installs, just a browser.
 
-> **Origin note, for transparency:** This project started as a digital adaptation of
-> **Shasn** (designed by Zain Memon, published by Memesys Culture Lab) — several early
-> design decisions were made by directly consulting Shasn's rulebooks. Before making this
-> repo public, we renamed every distinctive game element (the game's name, the four
-> ideologies, their resources, the elite-power roster, and the endgame mechanic) to
-> original names, so nothing here reuses Shasn's specific names or copied rulebook
-> content. What's left is a game in the same *genre* (area control + hidden-resource
-> negotiation), built with original card text throughout, but it is **not** Shasn, and
-> isn't affiliated with or endorsed by Memesys Culture Lab or Zain Memon.
+> **Origin note:** The System is an unofficial fan adaptation of **[SHASN](https://www.shasnthegame.com/)**,
+> designed by Zain Memon and published by Memesys Culture Lab. The gameplay closely follows
+> SHASN's rules; we've renamed the game, ideologies, resources and other named elements, and
+> written our own card text. It is not affiliated with or endorsed by Memesys Culture Lab or
+> Zain Memon. If you enjoy it, please [buy the physical game](https://www.shasnthegame.com/).
 
 **Why build this:** a physical board game needs 2–5 people, a table, and 2–6 hours in one
 room — a real barrier to who gets to play it and how often. Putting the game in a browser
