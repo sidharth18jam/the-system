@@ -34,12 +34,22 @@ kept in `localStorage`.
 4. HTTPS and the `*.onrender.com` domain are automatic. Use a single instance (free tier is
    one) so sockets stay on one process.
 
-## Fly.io
-1. `fly launch --no-deploy` (accept/adjust the app name; `fly.toml` is already here).
-2. `fly volumes create system_data --size 1` (matches the `[mounts]` block → durable games).
-3. `fly deploy`.
-`fly.toml` already sets `PORT=8080`, `STATE_FILE=/data/rooms-state.json`, `force_https`, and a
-`/healthz` check.
+## Fly.io (recommended: always on, no sleep)
+**From the dashboard, no CLI needed:**
+1. fly.io → **Launch an App** → connect GitHub → pick this repo.
+2. Pick an app name (it becomes `https://<name>.fly.dev`) and keep the region (`sin`).
+3. Launch. Fly reads `fly.toml`: one always-on 512 MB machine, a 1 GB volume at `/data`
+   for durable games, and a `/healthz` check. Pushes to `main` redeploy automatically.
+
+**Or from the CLI:** `fly launch --no-deploy`, then `fly deploy`. If a deploy reports the
+volume is missing: `fly volumes create system_data --size 1 --region sin`.
+
+Keep the app at **one machine**. Rooms live in that process's memory, and every player in a
+room must reach the same process. One machine comfortably runs dozens of games at once; use
+`test/parallel-games.js` (below) to check a deployment.
+
+`fly.toml` raises Fly's connection limit from its default of 25 per machine to 1000. Each
+player holds one WebSocket, so the default would cap you at about 8 three-player games.
 
 ## Local Docker
 ```
@@ -54,6 +64,14 @@ docker run -p 3000:3000 -e STATE_FILE=/data/rooms-state.json -v system_data:/dat
 |-----|---------|---------|
 | `PORT` | `3000` | Port the server listens on (platforms set this). |
 | `STATE_FILE` | `data/.rooms-state.json` | Where the room snapshot is written. Point at a mounted volume for durability. |
+| `ROOM_IDLE_MS` | `86400000` (24 h) | A room with nobody connected for this long is deleted. |
+
+## Checking a deployment
+Run full bot games in parallel against the live server, each in its own room:
+```
+SMOKE_URL=https://<your-app>.fly.dev GAMES=20 npm run test:parallel
+```
+It prints each game's result and fails if any game stalls or two games share a room.
 
 ## Note on the current persistence model
 The snapshot is a single JSON file rewritten (debounced) on every state change and reloaded on

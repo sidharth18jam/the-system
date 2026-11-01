@@ -30,6 +30,10 @@ const io = new Server(server, { pingInterval: 10000, pingTimeout: 10000 });
 
 const PORT = process.env.PORT || 3000;
 const LOBBY_GRACE_MS = 90 * 1000; // how long a dropped lobby player keeps their seat
+// A room with nobody connected for this long is abandoned: drop it so memory and the
+// snapshot file don't grow forever. Long enough to pause a game overnight and come back.
+const ROOM_IDLE_MS = Number(process.env.ROOM_IDLE_MS) || 24 * 60 * 60 * 1000;
+const ROOM_SWEEP_MS = Number(process.env.ROOM_SWEEP_MS) || 5 * 60 * 1000;
 
 // roomCode -> { code, hostToken, players: Map<token, {token,pid,name,socketId,connected}>, game|null }
 // Restored from disk on boot so in-progress games survive a restart.
@@ -37,6 +41,27 @@ const restored = loadState();
 const rooms = restored ? restored.rooms : new Map();
 let pidCounter = restored ? restored.pidCounter : 0;
 const persist = () => scheduleSave(rooms, () => pidCounter);
+
+function sweepIdleRooms(now = Date.now()) {
+  let removed = 0;
+  for (const room of rooms.values()) {
+    const anyone = [...room.players.values()].some((p) => p.connected);
+    if (anyone) {
+      room.idleSince = null;
+      continue;
+    }
+    if (room.idleSince == null) room.idleSince = now;
+    if (now - room.idleSince >= ROOM_IDLE_MS) {
+      rooms.delete(room.code);
+      removed++;
+    }
+  }
+  if (removed) {
+    console.log(`swept ${removed} idle room(s); ${rooms.size} left`);
+    persist();
+  }
+}
+setInterval(sweepIdleRooms, ROOM_SWEEP_MS).unref();
 
 function makeRoomCode() {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';

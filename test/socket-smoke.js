@@ -3,14 +3,18 @@ const { spawn } = require('child_process');
 const path = require('path');
 const { io } = require('socket.io-client');
 
+// SMOKE_URL points the bots at a running server (local or deployed) instead of spawning one.
 const PORT = 3123;
-const URL = `http://localhost:${PORT}`;
+const URL = process.env.SMOKE_URL || `http://localhost:${PORT}`;
+const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS) || 60000;
 
-const serverProc = spawn('node', [path.join(__dirname, '../server/index.js')], {
-  env: { ...process.env, PORT: String(PORT) },
-  stdio: 'inherit',
-});
-process.on('exit', () => serverProc.kill());
+if (!process.env.SMOKE_URL) {
+  const serverProc = spawn('node', [path.join(__dirname, '../server/index.js')], {
+    env: { ...process.env, PORT: String(PORT) },
+    stdio: 'inherit',
+  });
+  process.on('exit', () => serverProc.kill());
+}
 const RES = ['funds', 'clout', 'media', 'trust'];
 
 function connect() {
@@ -74,7 +78,7 @@ function smokeTarget(s, card, pid) {
 }
 
 async function main() {
-  await new Promise((r) => setTimeout(r, 1200)); // let server boot
+  if (!process.env.SMOKE_URL) await new Promise((r) => setTimeout(r, 1200)); // let server boot
   const [a, b, c] = await Promise.all([connect(), connect(), connect()]);
   const clients = [
     { sock: a, name: 'Alice' },
@@ -288,7 +292,7 @@ async function main() {
   a.emit('startGame');
 
   setTimeout(() => {
-    console.error('TIMEOUT: game did not finish in 60s');
+    console.error(`TIMEOUT: game did not finish in ${TIMEOUT_MS / 1000}s`);
     const s = clients[0].state;
     if (s) {
       console.error(`phase=${s.phase} active=${s.activePlayerId} actions=~${turnCount}`);
@@ -302,7 +306,7 @@ async function main() {
       console.error('last log:', s.log.slice(-5).join(' | '));
     }
     process.exit(1);
-  }, 60000);
+  }, TIMEOUT_MS);
 }
 
 main().catch((e) => {
