@@ -1,5 +1,7 @@
-# Fly.io config for The System. Run `fly launch --no-deploy` once to set an app name,
-# then `fly deploy`. A volume makes in-progress games survive restarts (see [mounts]).
+# Fly.io config for The System. Deploy either way:
+#   - Dashboard: fly.io → Launch an App → pick this GitHub repo (it reads this file), or
+#   - CLI: `fly launch --no-deploy` once (pick an app name), then `fly deploy`.
+# Fly may rename `app` to whatever name you pick at launch; app names are global on Fly.
 app = "the-system"
 primary_region = "sin"
 
@@ -13,21 +15,33 @@ primary_region = "sin"
 [http_service]
   internal_port = 8080
   force_https = true
+  # One always-on machine: rooms live in this process's memory, and Socket.IO needs every
+  # player in a room on the same machine. Don't scale this app past one machine.
   auto_stop_machines = false
   auto_start_machines = true
   min_machines_running = 1
 
-  [http_service.http_options]
-    # Socket.IO needs sticky, long-lived connections.
-    [http_service.http_options.response.headers]
+  # Each player holds one long-lived WebSocket. Fly's default limit is 25 connections per
+  # machine (about 8 three-player games); raise it so a busy day doesn't turn players away.
+  [http_service.concurrency]
+    type = "connections"
+    soft_limit = 800
+    hard_limit = 1000
 
 [[http_service.checks]]
   method = "get"
   path = "/healthz"
   interval = "15s"
   timeout = "2s"
+  grace_period = "10s"
 
-# Durable snapshot storage. Create with: fly volumes create system_data --size 1
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+# Durable snapshot storage so in-progress games survive deploys and restarts.
+# Fly creates it on first launch; if a deploy says the volume is missing, run:
+#   fly volumes create system_data --size 1 --region sin
 [mounts]
   source = "system_data"
   destination = "/data"
