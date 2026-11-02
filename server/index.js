@@ -8,9 +8,18 @@ const { SystemGame } = require('./game');
 const { scheduleSave, flushSave, loadState } = require('./persistence');
 const { postMessage, chatHistory, canSee } = require('./chat');
 const limits = require('./limits');
+const { createStats, renderStatsPage } = require('./stats');
 
 const app = express();
 app.disable('x-powered-by');
+// Funnel counter: a real page load of the game (not link-preview bots, health checks or assets).
+const PREVIEW_BOT = /bot|crawl|spider|preview|facebookexternalhit|embedly|slack|discord|whatsapp|telegram|curl|wget|python|headless/i;
+app.use((req, res, next) => {
+  if (req.method === 'GET' && (req.path === '/' || req.path === '/index.html') && !PREVIEW_BOT.test(req.get('user-agent') || '')) {
+    stats.bump('pageViews');
+  }
+  next();
+});
 app.use(express.static(path.join(__dirname, '../public')));
 app.get('/healthz', (_req, res) => res.type('text').send('ok')); // platform health check
 // Lobby invite QR: encodes the join link the client builds, so phones can scan to join.
@@ -43,8 +52,57 @@ const ROOM_SWEEP_MS = Number(process.env.ROOM_SWEEP_MS) || 5 * 60 * 1000;
 const restored = loadState();
 const rooms = restored ? restored.rooms : new Map();
 let pidCounter = restored ? restored.pidCounter : 0;
-// Mark a room changed (or all rooms, with no argument) and schedule a snapshot write.
-const persist = (room) => scheduleSave(rooms, () => pidCounter, room);
+const stats = createStats(restored && restored.stats);
+// Mark a room changed (all rooms with no argument; none with `false`) and schedule a snapshot write.
+const persist = (room) => scheduleSave(rooms, () => ({ pidCounter, stats: stats.toJSON() }), room);
+stats.setOnChange(() => persist(false));
+
+// Owner-only funnel page. Set STATS_KEY and open /stats?key=<it>; without STATS_KEY it's public.
+const STATS_KEY = process.env.STATS_KEY || '';
+function statsReport(req, res) {
+  if (STATS_KEY && req.query.key !== STATS_KEY) {
+    res.status(404).end();
+    return null;
+  }
+  const all = [...rooms.values()];
+  const players = all.reduce((n, r) => n + [...r.players.values()].filter((p) => p.connected).length, 0);
+  return {
+    ...stats.report({
+      'players online': players,
+      'games in progress': all.filter((r) => r.game && r.game.phase !== 'GAME_OVER').length,
+      'open tables': openTables().length,
+      'rooms in memory': all.length,
+    }),
+    keyQuery: STATS_KEY ? `?key=${encodeURIComponent(STATS_KEY)}` : '',
+  };
+}
+app.get('/stats', (req, res) => {
+  const r = statsReport(req, res);
+  if (r) res.set('Cache-Control', 'no-store').type('html').send(renderStatsPage(r));
+});
+app.get('/stats.json', (req, res) => {
+  const r = statsReport(req, res);
+  if (r) {
+    delete r.keyQuery;
+    res.set('Cache-Control', 'no-store').json(r);
+  }
+});
+
+// Lobbies their host listed as open, with a free seat and someone still there — what the
+// home page's "Open tables" list shows. Fullest first (closest to starting), then newest.
+const OPEN_TABLES_MAX = 20;
+function openTables() {
+  return [...rooms.values()]
+    .filter((r) => r.open && !r.game && r.players.size < 5 && [...r.players.values()].some((p) => p.connected))
+    .sort((a, b) => b.players.size - a.players.size || (b.createdAt || 0) - (a.createdAt || 0))
+    .slice(0, OPEN_TABLES_MAX)
+    .map((r) => ({
+      code: r.code,
+      host: (r.players.get(r.hostToken) || [...r.players.values()][0]).name,
+      players: r.players.size,
+      max: 5,
+    }));
+}
 
 const roomCreateLimiter = limits.makeLimiter(limits.ROOM_CREATE_MAX, limits.ROOM_CREATE_WINDOW_MS);
 const joinMissLimiter = limits.makeLimiter(limits.JOIN_MISS_MAX, limits.JOIN_MISS_WINDOW_MS);
@@ -61,6 +119,8 @@ function sweepIdleRooms(now = Date.now()) {
     if (now - room.idleSince >= ROOM_IDLE_MS) {
       rooms.delete(room.code);
       removed++;
+      if (room.game && room.game.phase !== 'GAME_OVER') stats.bump('gamesAbandoned');
+      else if (!room.game) stats.bump('lobbiesAbandoned');
     }
   }
   if (removed) {
@@ -92,6 +152,7 @@ function lobbyState(room) {
   return {
     code: room.code,
     started: !!room.game,
+    open: !!room.open,
     players: [...room.players.values()].map((p) => ({
       id: p.pid,
       name: p.name,
@@ -128,6 +189,10 @@ function deliverChat(room, msg) {
 }
 
 function broadcast(room) {
+  if (room.game && room.game.phase === 'GAME_OVER' && !room.game.statsFinished) {
+    room.game.statsFinished = true; // stored on the game, so a restart can't count it twice
+    stats.bump('gamesFinished');
+  }
   const lobby = room.game ? null : lobbyState(room);
   for (const p of room.players.values()) sendState(room, p, lobby);
   if (room.game) armTimers(room);
@@ -233,6 +298,7 @@ function releaseSeat(room, token, socketId) {
     room.players.delete(token);
     if (room.players.size === 0) {
       rooms.delete(room.code);
+      stats.bump('lobbiesAbandoned');
       persist();
       return;
     }
@@ -304,8 +370,15 @@ io.on('connection', (socket) => {
       game: null,
       chat: [],
       chatSeq: 0,
+      open: payload.open === true,
+      createdAt: Date.now(),
     };
     rooms.set(code, room);
+    stats.bump('roomsCreated');
+    if (room.open) {
+      room.openCounted = true;
+      stats.bump('tablesOpened');
+    }
     myRoom = room;
     myToken = token;
     socket.join(code);
@@ -359,6 +432,12 @@ io.on('connection', (socket) => {
     myRoom = room;
     myToken = newToken;
     socket.join(room.code);
+    const via = { list: 'joinsViaList', invite: 'joinsViaInvite' }[payload.via] || 'joinsViaCode';
+    stats.bump(via);
+    if (room.players.size >= 2 && !room.reached2) {
+      room.reached2 = true;
+      stats.bump('roomsWith2');
+    }
     ack && ack({ ok: true, code: room.code, token: newToken });
     broadcast(room);
     sendChatHistory(room, room.players.get(newToken));
@@ -378,7 +457,24 @@ io.on('connection', (socket) => {
     } catch (e) {
       return fail(e.message);
     }
+    stats.gameStarted(myRoom.game.mode, infos.length);
     broadcast(myRoom);
+  });
+
+  // Host lists the lobby on the home page's "Open tables" (or takes it off).
+  on('setOpen', (payload) => {
+    if (!myRoom || myToken !== myRoom.hostToken) return fail('Only the host can change this');
+    if (myRoom.game) return fail('The game has already started');
+    myRoom.open = payload.open === true;
+    if (myRoom.open && !myRoom.openCounted) {
+      myRoom.openCounted = true;
+      stats.bump('tablesOpened');
+    }
+    broadcast(myRoom);
+  });
+
+  on('listTables', (_payload, ack) => {
+    if (ack) ack({ ok: true, tables: openTables() });
   });
 
   const gameAction = (fn) => {

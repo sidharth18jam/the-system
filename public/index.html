@@ -25,6 +25,13 @@
         <button id="btn-join">Join</button>
       </div>
       <p id="home-error" class="error"></p>
+      <section id="open-tables" class="open-tables" aria-labelledby="open-tables-title">
+        <h3 id="open-tables-title">Open tables <span id="open-tables-count" class="ot-count"></span></h3>
+        <p class="ot-sub">No friends online? Join strangers here, or open your own table.</p>
+        <ul id="open-tables-list"></ul>
+        <p id="open-tables-empty" class="ot-empty">No open tables right now.</p>
+        <button id="btn-create-open">Start an open table</button>
+      </section>
       <button class="howto-btn" data-walkthrough>New here? <b>How to play</b> · 2 min</button>
       <p class="credit">Unofficial fan adaptation of <a href="https://www.shasnthegame.com/" target="_blank" rel="noopener">SHASN</a> by Memesys Culture Lab · <a href="https://www.shasnthegame.com/" target="_blank" rel="noopener">Buy the game</a></p>
     </div>
@@ -38,6 +45,11 @@
       <img id="lobby-qr" class="lobby-qr" alt="QR code to join this room" width="180" height="180" />
       <button id="btn-invite">Share invite link</button>
       <ul id="lobby-players"></ul>
+      <label id="open-row" class="open-row hidden">
+        <input type="checkbox" id="open-check" />
+        <span><b>List as an open table</b><br /><small>Anyone on the home page can take a free seat</small></span>
+      </label>
+      <p id="open-note" class="open-note hidden">Open table: strangers can join from the home page.</p>
       <div id="mode-row" class="trade-partner-row hidden">
         <label for="mode-select">Mode <button class="info-btn" data-info="modes" aria-label="Explain game modes">i</button></label>
         <select id="mode-select">

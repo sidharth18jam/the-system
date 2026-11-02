@@ -105,6 +105,9 @@ async function main() {
   a.on('lobbyState', onA);
   b.on('lobbyState', onB);
   a.emit('resync');
+  // Wait for the asker's answer (it can lag on a loaded server, e.g. 50 parallel games), then
+  // give a stray broadcast to the other seat the same grace period to show up.
+  for (let waited = 0; got.a === 0 && waited < 5000; waited += 50) await new Promise((r) => setTimeout(r, 50));
   await new Promise((r) => setTimeout(r, 300));
   a.off('lobbyState', onA);
   b.off('lobbyState', onB);

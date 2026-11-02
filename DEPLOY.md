@@ -87,6 +87,16 @@ docker run -p 3000:3000 -e STATE_FILE=/data/rooms-state.json -v system_data:/dat
 | `JOIN_MISS_MAX` | `40` | Joins to non-existent room codes per IP per 10 minutes (stops code scanning). |
 | `SOCKET_EVENT_MAX` | `120` | Events one connection may send per 2 seconds (flood guard). |
 | `MAX_ROOMS` | `2000` | Rooms held in memory at once; new rooms are refused beyond this. |
+| `STATS_KEY` | _(unset)_ | Locks the funnel page: `/stats?key=<value>`. Unset, `/stats` is public. |
+
+## Funnel stats
+`/stats` shows how far visitors get: page views → rooms created → rooms that got a 2nd player →
+games started → games finished, each as a % of the step before, plus where joins came from
+(open-tables list, invite link/QR, typed code), games by mode and player count, live numbers, and
+a per-day table (UTC, last 60 days). `/stats.json` has the same data. Counts are anonymous (no
+names, IPs or cookies, no third-party scripts), saved with the room snapshot so they survive
+restarts, and page views skip link-preview bots (Reddit, WhatsApp, Slack…). Set `STATS_KEY` so only
+you can open it.
 
 ## Checking a deployment
 Run full bot games in parallel against the live server, each in its own room:
