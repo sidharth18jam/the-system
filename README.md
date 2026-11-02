@@ -167,6 +167,12 @@ use, modify, and share this for any noncommercial purpose — personal projects,
 education. Commercial use requires permission. Open an issue or reach out if you want to
 discuss that.
 
+## Support
+
+If you'd like to help cover hosting and development time, you can
+[buy me a coffee](https://buymeacoffee.com/sid.g). It's entirely optional and doesn't
+unlock anything in the game.
+
 ---
 
 *Built by the project team.*
