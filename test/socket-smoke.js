@@ -10,7 +10,10 @@ const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS) || 60000;
 
 if (!process.env.SMOKE_URL) {
   const serverProc = spawn('node', [path.join(__dirname, '../server/index.js')], {
-    env: { ...process.env, PORT: String(PORT) },
+    // A temp snapshot file, so the test never touches data/.rooms-state.json.
+    env: { ...process.env, PORT: String(PORT), STATE_FILE: path.join(require('os').tmpdir(), `smoke-${process.pid}.json`),
+      // Bots act at machine speed; lift the per-socket flood guard meant for humans.
+      SOCKET_EVENT_MAX: '100000' },
     stdio: 'inherit',
   });
   process.on('exit', () => serverProc.kill());

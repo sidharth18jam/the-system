@@ -33,16 +33,33 @@ kept in `localStorage`.
 3. (Optional) Add a Disk mounted at `/data` and set `STATE_FILE=/data/rooms-state.json`.
 4. HTTPS and the `*.onrender.com` domain are automatic. Use a single instance (free tier is
    one) so sockets stay on one process.
+5. Settings → Build & Deploy → **Auto-Deploy: After CI Checks Pass**, so a push to `main` only
+   goes live once the Test workflow is green.
+
+**Free-tier caveats.** A free Render service sleeps after ~15 minutes without traffic; the next
+visitor waits about a minute while it wakes. It also has no disk, so every deploy, restart or
+sleep wipes in-progress games. For playtesters, open the link a minute before a session, and
+don't merge to `main` while a game is running.
 
 ## Fly.io (recommended: always on, no sleep)
-**From the dashboard, no CLI needed:**
-1. fly.io → **Launch an App** → connect GitHub → pick this repo.
-2. Pick an app name (it becomes `https://<name>.fly.dev`) and keep the region (`sin`).
-3. Launch. Fly reads `fly.toml`: one always-on 512 MB machine, a 1 GB volume at `/data`
-   for durable games, and a `/healthz` check. Pushes to `main` redeploy automatically.
+Deploys go through GitHub Actions (`.github/workflows/deploy-fly.yml`): a push to `main`
+deploys **only after the Test workflow passes** on that commit. Don't also turn on Fly's
+dashboard GitHub auto-deploy: it deploys every push, tested or not.
 
-**Or from the CLI:** `fly launch --no-deploy`, then `fly deploy`. If a deploy reports the
-volume is missing: `fly volumes create system_data --size 1 --region sin`.
+**One-time setup (CLI):**
+1. `fly launch --no-deploy` — pick an app name (it becomes `https://<name>.fly.dev`), keep the
+   region (`sin`). Fly reads `fly.toml`: one always-on 512 MB machine, a 1 GB volume at `/data`
+   for durable games, and a `/healthz` check.
+2. `fly deploy` for the first deploy. If it reports the volume is missing:
+   `fly volumes create system_data --size 1 --region sin`.
+3. `fly machines list` must show **exactly one** machine. If there are two, run
+   `fly scale count 1`.
+4. `fly tokens create deploy` and save the output as a GitHub repository secret named
+   `FLY_API_TOKEN` (repo → Settings → Secrets and variables → Actions). From then on every green
+   push to `main` deploys itself.
+
+A deploy restarts the server: players see a short reconnect and their game continues, because
+the server saves every room on shutdown and reloads it on boot.
 
 Keep the app at **one machine**. Rooms live in that process's memory, and every player in a
 room must reach the same process. One machine comfortably runs dozens of games at once; use
@@ -65,17 +82,26 @@ docker run -p 3000:3000 -e STATE_FILE=/data/rooms-state.json -v system_data:/dat
 | `PORT` | `3000` | Port the server listens on (platforms set this). |
 | `STATE_FILE` | `data/.rooms-state.json` | Where the room snapshot is written. Point at a mounted volume for durability. |
 | `ROOM_IDLE_MS` | `86400000` (24 h) | A room with nobody connected for this long is deleted. |
+| `SAVE_MAX_WAIT_MS` | `2000` | Longest a change waits before it is written, however busy the server is. |
+| `ROOM_CREATE_MAX` | `30` | Rooms one IP may create per 10 minutes (room for a classroom on shared Wi-Fi). |
+| `JOIN_MISS_MAX` | `40` | Joins to non-existent room codes per IP per 10 minutes (stops code scanning). |
+| `SOCKET_EVENT_MAX` | `120` | Events one connection may send per 2 seconds (flood guard). |
+| `MAX_ROOMS` | `2000` | Rooms held in memory at once; new rooms are refused beyond this. |
 
 ## Checking a deployment
 Run full bot games in parallel against the live server, each in its own room:
 ```
 SMOKE_URL=https://<your-app>.fly.dev GAMES=20 npm run test:parallel
 ```
-It prints each game's result and fails if any game stalls or two games share a room.
+It prints each game's result and fails if any game stalls or two games share a room. The bots
+play at machine speed, so set `SOCKET_EVENT_MAX=100000` on the deployment while load-testing.
 
 ## Note on the current persistence model
-The snapshot is a single JSON file rewritten (debounced) on every state change and reloaded on
-boot — right for the current scale (a handful of concurrent rooms). Restored players start
+The snapshot is a single JSON file, written at most every 2 seconds while games are changing,
+replaced atomically (temp file + rename, so a crash can't truncate it), flushed on shutdown, and
+reloaded on boot. Only rooms that changed are re-serialized. An unreadable snapshot is moved
+aside as `*.corrupt-<time>` rather than overwritten. This suits one server with up to a few
+hundred concurrent rooms. Restored players start
 disconnected and rejoin automatically with the token their browser already holds
 (`sessionStorage`). If you later run multiple instances or need higher durability, swap
 `server/persistence.js` for a database or Redis without touching the engine.

@@ -5,10 +5,12 @@ const express = require('express');
 const { Server } = require('socket.io');
 const QRCode = require('qrcode');
 const { SystemGame } = require('./game');
-const { scheduleSave, loadState } = require('./persistence');
+const { scheduleSave, flushSave, loadState } = require('./persistence');
 const { postMessage, chatHistory, canSee } = require('./chat');
+const limits = require('./limits');
 
 const app = express();
+app.disable('x-powered-by');
 app.use(express.static(path.join(__dirname, '../public')));
 app.get('/healthz', (_req, res) => res.type('text').send('ok')); // platform health check
 // Lobby invite QR: encodes the join link the client builds, so phones can scan to join.
@@ -26,7 +28,8 @@ app.get('/qr.svg', async (req, res) => {
 const server = http.createServer(app);
 // Tighter heartbeat than the 25s+20s default: a phone that sleeps or drops Wi-Fi is noticed
 // (and reconnects, which re-pushes state) in ~20s instead of ~45s.
-const io = new Server(server, { pingInterval: 10000, pingTimeout: 10000 });
+// Game messages are tiny; cap inbound payloads well below Socket.IO's 1 MB default.
+const io = new Server(server, { pingInterval: 10000, pingTimeout: 10000, maxHttpBufferSize: 64 * 1024 });
 
 const PORT = process.env.PORT || 3000;
 const LOBBY_GRACE_MS = 90 * 1000; // how long a dropped lobby player keeps their seat
@@ -40,7 +43,11 @@ const ROOM_SWEEP_MS = Number(process.env.ROOM_SWEEP_MS) || 5 * 60 * 1000;
 const restored = loadState();
 const rooms = restored ? restored.rooms : new Map();
 let pidCounter = restored ? restored.pidCounter : 0;
-const persist = () => scheduleSave(rooms, () => pidCounter);
+// Mark a room changed (or all rooms, with no argument) and schedule a snapshot write.
+const persist = (room) => scheduleSave(rooms, () => pidCounter, room);
+
+const roomCreateLimiter = limits.makeLimiter(limits.ROOM_CREATE_MAX, limits.ROOM_CREATE_WINDOW_MS);
+const joinMissLimiter = limits.makeLimiter(limits.JOIN_MISS_MAX, limits.JOIN_MISS_WINDOW_MS);
 
 function sweepIdleRooms(now = Date.now()) {
   let removed = 0;
@@ -60,6 +67,8 @@ function sweepIdleRooms(now = Date.now()) {
     console.log(`swept ${removed} idle room(s); ${rooms.size} left`);
     persist();
   }
+  roomCreateLimiter.prune(now);
+  joinMissLimiter.prune(now);
 }
 setInterval(sweepIdleRooms, ROOM_SWEEP_MS).unref();
 
@@ -122,7 +131,7 @@ function broadcast(room) {
   const lobby = room.game ? null : lobbyState(room);
   for (const p of room.players.values()) sendState(room, p, lobby);
   if (room.game) armTimers(room);
-  persist(); // mirror the change to disk (debounced)
+  persist(room); // mirror the change to disk (batched)
 }
 
 // Interrupt phases (REACTION, AUCTION, AUCTION_PLACE) must not hang on an absent player.
@@ -205,15 +214,85 @@ function armTimers(room) {
   }, timeoutMs);
 }
 
+// Payload fields come from untrusted clients: coerce to the expected shape, never assume it.
+const str = (v) => (typeof v === 'string' ? v : '');
+
+// A seat's socket went away (disconnect) or moved to another room. Mark the seat offline and,
+// in the lobby, free it after a grace period if its owner doesn't come back.
+function releaseSeat(room, token, socketId) {
+  const p = room.players.get(token);
+  // A newer socket (reopened tab, reconnect) already owns this seat — nothing to do.
+  if (!p || p.socketId !== socketId) return;
+  p.connected = false;
+  broadcast(room);
+  if (room.game) return;
+  // In lobby: phones drop the socket on screen lock or app switch, so hold the seat
+  // briefly and only remove the player if they haven't come back.
+  setTimeout(() => {
+    if (room.game || p.connected || room.players.get(token) !== p) return;
+    room.players.delete(token);
+    if (room.players.size === 0) {
+      rooms.delete(room.code);
+      persist();
+      return;
+    }
+    if (token === room.hostToken) {
+      room.hostToken = room.players.keys().next().value;
+    }
+    broadcast(room);
+  }, LOBBY_GRACE_MS).unref();
+}
+
 io.on('connection', (socket) => {
   let myRoom = null;
   let myToken = null;
+  const ip = limits.clientIp(socket);
+  const eventLimiter = limits.makeLimiter(limits.SOCKET_EVENT_MAX, limits.SOCKET_EVENT_WINDOW_MS);
+  let floodWarned = false;
 
   const fail = (msg) => socket.emit('errorMsg', msg);
   const myPlayer = () => (myRoom && myToken ? myRoom.players.get(myToken) : null);
 
-  socket.on('createRoom', ({ name }, ack) => {
-    if (!name || !name.trim()) return ack && ack({ ok: false, error: 'Enter a name' });
+  // Every handler goes through here: a malformed payload, a flood, or a bug in one handler
+  // must answer that one client with an error — never throw and take the whole server down.
+  const on = (event, handler) =>
+    socket.on(event, (...args) => {
+      const ack = typeof args[args.length - 1] === 'function' ? args.pop() : null;
+      if (!eventLimiter.allow('e')) {
+        if (!floodWarned) fail('Too many actions at once — slow down');
+        floodWarned = true;
+        return ack && ack({ ok: false, error: 'Too many requests' });
+      }
+      floodWarned = false;
+      const payload = args[0] && typeof args[0] === 'object' && !Array.isArray(args[0]) ? args[0] : {};
+      try {
+        handler(payload, ack);
+      } catch (e) {
+        console.error(`handler "${event}" failed:`, e && e.stack ? e.stack : e);
+        if (ack) ack({ ok: false, error: 'Something went wrong' });
+        else fail('Something went wrong');
+      }
+    });
+
+  // Moving to another room (create or join) gives up the seat this socket held before,
+  // so the old room doesn't keep a ghost "connected" player and stop receiving our state.
+  const leaveCurrentSeat = (nextRoom, nextToken) => {
+    if (!myRoom || (myRoom === nextRoom && myToken === nextToken)) return;
+    const old = myRoom;
+    if (old !== nextRoom) socket.leave(old.code);
+    releaseSeat(old, myToken, socket.id);
+  };
+
+  on('createRoom', (payload, ack) => {
+    const name = str(payload.name);
+    if (!name.trim()) return ack && ack({ ok: false, error: 'Enter a name' });
+    if (rooms.size >= limits.MAX_ROOMS) {
+      return ack && ack({ ok: false, error: 'The server is full right now — try again later' });
+    }
+    if (!roomCreateLimiter.allow(ip)) {
+      return ack && ack({ ok: false, error: 'Too many rooms created — try again in a few minutes' });
+    }
+    leaveCurrentSeat(null, null);
     const code = makeRoomCode();
     const token = makeToken();
     const room = {
@@ -234,12 +313,21 @@ io.on('connection', (socket) => {
     broadcast(room);
   });
 
-  socket.on('joinRoom', ({ code, name, token }, ack) => {
-    const room = rooms.get((code || '').toUpperCase().trim());
-    if (!room) return ack && ack({ ok: false, error: 'Room not found' });
+  on('joinRoom', (payload, ack) => {
+    const code = str(payload.code);
+    const name = str(payload.name);
+    const token = str(payload.token);
+    const room = rooms.get(code.toUpperCase().trim());
+    if (!room) {
+      if (!joinMissLimiter.allow(ip)) {
+        return ack && ack({ ok: false, error: 'Too many attempts — try again in a few minutes' });
+      }
+      return ack && ack({ ok: false, error: 'Room not found' });
+    }
 
     // Reconnect path
     if (token && room.players.has(token)) {
+      leaveCurrentSeat(room, token);
       const p = room.players.get(token);
       p.socketId = socket.id;
       p.connected = true;
@@ -254,11 +342,12 @@ io.on('connection', (socket) => {
 
     if (room.game) return ack && ack({ ok: false, error: 'Game already in progress' });
     if (room.players.size >= 5) return ack && ack({ ok: false, error: 'Room is full (5 max)' });
-    if (!name || !name.trim()) return ack && ack({ ok: false, error: 'Enter a name' });
+    if (!name.trim()) return ack && ack({ ok: false, error: 'Enter a name' });
     const cleanName = name.trim().slice(0, 20);
     if ([...room.players.values()].some((p) => p.name.toLowerCase() === cleanName.toLowerCase())) {
       return ack && ack({ ok: false, error: 'Name taken in this room' });
     }
+    leaveCurrentSeat(room, null);
     const newToken = makeToken();
     room.players.set(newToken, {
       token: newToken,
@@ -275,11 +364,11 @@ io.on('connection', (socket) => {
     sendChatHistory(room, room.players.get(newToken));
   });
 
-  socket.on('startGame', (payload) => {
+  on('startGame', (payload) => {
     if (!myRoom || myToken !== myRoom.hostToken) return fail('Only the host can start');
     if (myRoom.game) return fail('Already started');
     if (myRoom.players.size < 2) return fail('Need at least 2 players');
-    let mode = (payload && payload.mode) || 'standard';
+    let mode = str(payload.mode) || 'standard';
     // Two players ALWAYS play 2 Player mode — the 9-zone game doesn't work head-to-head,
     // and the engine rejects twoPlayer with any other count (DD-26).
     if (myRoom.players.size === 2) mode = 'twoPlayer';
@@ -298,114 +387,115 @@ io.on('connection', (socket) => {
     if (!p) return fail('Not in this room');
     try {
       fn(myRoom.game, p.pid);
-      broadcast(myRoom);
     } catch (e) {
-      fail(e.message);
+      // Rule violations are expected (a stale click, an illegal move); report them to the player.
+      return fail(e instanceof Error ? e.message : 'That move is not allowed');
     }
+    broadcast(myRoom);
   };
 
-  socket.on('pickStartingResource', ({ resource }) =>
+  on('pickStartingResource', ({ resource }) =>
     gameAction((g, pid) => g.pickStartingResource(pid, resource))
   );
-  socket.on('answerPolicy', ({ choice }) => gameAction((g, pid) => g.answerPolicy(pid, choice)));
-  socket.on('buyVoterCard', ({ hqIndex, zoneId, useVolatile, discounts, hold }) =>
+  on('answerPolicy', ({ choice }) => gameAction((g, pid) => g.answerPolicy(pid, choice)));
+  on('buyVoterCard', ({ hqIndex, zoneId, useVolatile, discounts, hold }) =>
     gameAction((g, pid) => g.buyVoterCard(pid, hqIndex, zoneId, !!useVolatile, discounts || null, !!hold))
   );
-  socket.on('endTurn', () => gameAction((g, pid) => g.endTurn(pid)));
-  socket.on('gerrymander', ({ fromZoneId, slotIndex, toZoneId, toVolatile }) =>
+  on('endTurn', () => gameAction((g, pid) => g.endTurn(pid)));
+  on('gerrymander', ({ fromZoneId, slotIndex, toZoneId, toVolatile }) =>
     gameAction((g, pid) => g.gerrymander(pid, fromZoneId, slotIndex, toZoneId, !!toVolatile))
   );
-  socket.on('skipGerrymander', () => gameAction((g, pid) => g.skipGerrymander(pid)));
-  socket.on('proposeTrade', ({ toId, give, want, giveCards, wantCards }) =>
+  on('skipGerrymander', () => gameAction((g, pid) => g.skipGerrymander(pid)));
+  on('proposeTrade', ({ toId, give, want, giveCards, wantCards }) =>
     gameAction((g, pid) => g.proposeTrade(pid, toId, give, want, giveCards, wantCards))
   );
-  socket.on('buyConspiracy', ({ payment, discounts }) =>
+  on('buyConspiracy', ({ payment, discounts }) =>
     gameAction((g, pid) => g.buyConspiracy(pid, payment, discounts || null))
   );
-  socket.on('playConspiracy', ({ cardId, targetSpec }) =>
+  on('playConspiracy', ({ cardId, targetSpec }) =>
     gameAction((g, pid) => g.playConspiracy(pid, cardId, targetSpec))
   );
-  socket.on('respondReaction', ({ cardId }) =>
+  on('respondReaction', ({ cardId }) =>
     gameAction((g, pid) => g.respondReaction(pid, cardId || null))
   );
   // Official-elite active powers (DD-22). Passive elites express automatically.
-  socket.on('benefactorGift', ({ toId, payment, hqIndex, zoneId }) =>
+  on('benefactorGift', ({ toId, payment, hqIndex, zoneId }) =>
     gameAction((g, pid) => g.benefactorGift(pid, toId, payment, hqIndex, zoneId))
   );
-  socket.on('buyHeadline', ({ payment, targetPlayerId }) =>
+  on('buyHeadline', ({ payment, targetPlayerId }) =>
     gameAction((g, pid) => g.buyHeadline(pid, payment, targetPlayerId))
   );
-  socket.on('oracleSacrifice', ({ zoneId, slotIndex, gains }) =>
+  on('oracleSacrifice', ({ zoneId, slotIndex, gains }) =>
     gameAction((g, pid) => g.oracleSacrifice(pid, zoneId, slotIndex, gains))
   );
-  socket.on('insurgentMove', ({ moves }) => gameAction((g, pid) => g.insurgentMove(pid, moves)));
-  socket.on('pickPatronTargets', ({ targets }) =>
+  on('insurgentMove', ({ moves }) => gameAction((g, pid) => g.insurgentMove(pid, moves)));
+  on('pickPatronTargets', ({ targets }) =>
     gameAction((g, pid) => g.pickPatronTargets(pid, targets))
   );
-  socket.on('maverickCopy', ({ eliteId, args }) =>
+  on('maverickCopy', ({ eliteId, args }) =>
     gameAction((g, pid) => g.maverickCopy(pid, eliteId, args || {}))
   );
   // ideologue powers (L3/L5) (DD-21).
-  socket.on('prospect', ({ giveRes, getA, getB }) =>
+  on('prospect', ({ giveRes, getA, getB }) =>
     gameAction((g, pid) => g.prospect(pid, giveRes, getA, getB))
   );
-  socket.on('landGrab', ({ zoneId, slotIndex }) =>
+  on('landGrab', ({ zoneId, slotIndex }) =>
     gameAction((g, pid) => g.landGrab(pid, zoneId, slotIndex))
   );
-  socket.on('placeBenched', ({ zoneId, n }) =>
+  on('placeBenched', ({ zoneId, n }) =>
     gameAction((g, pid) => g.placeBenched(pid, zoneId, n))
   );
-  socket.on('snatch', ({ fromId, res }) => gameAction((g, pid) => g.snatch(pid, fromId, res)));
-  socket.on('payback', ({ payRes, zoneId, slotIndex }) =>
+  on('snatch', ({ fromId, res }) => gameAction((g, pid) => g.snatch(pid, fromId, res)));
+  on('payback', ({ payRes, zoneId, slotIndex }) =>
     gameAction((g, pid) => g.payback(pid, payRes, zoneId, slotIndex))
   );
-  socket.on('toughLove', ({ zoneId, slotIndex1, slotIndex2, extraPayment, discounts }) =>
+  on('toughLove', ({ zoneId, slotIndex1, slotIndex2, extraPayment, discounts }) =>
     gameAction((g, pid) =>
       g.toughLove(pid, zoneId, slotIndex1, slotIndex2, extraPayment, discounts || null)
     )
   );
-  socket.on('placeBid', ({ amount }) => gameAction((g, pid) => g.placeBid(pid, amount)));
-  socket.on('passBid', () => gameAction((g, pid) => g.passBid(pid)));
-  socket.on('placeAuctionWin', ({ zoneId, useVolatile }) =>
+  on('placeBid', ({ amount }) => gameAction((g, pid) => g.placeBid(pid, amount)));
+  on('passBid', () => gameAction((g, pid) => g.passBid(pid)));
+  on('placeAuctionWin', ({ zoneId, useVolatile }) =>
     gameAction((g, pid) => g.placeAuctionWin(pid, zoneId, !!useVolatile))
   );
-  socket.on('respondTrade', ({ offerId, accept }) =>
+  on('respondTrade', ({ offerId, accept }) =>
     gameAction((g, pid) => g.respondTrade(pid, offerId, !!accept))
   );
-  socket.on('cancelTrade', ({ offerId }) =>
+  on('cancelTrade', ({ offerId }) =>
     gameAction((g, pid) => g.cancelTrade(pid, offerId))
   );
   // Coalitions (DD-23): joint zone capture with a peg split.
-  socket.on('proposeCoalition', ({ toId, zoneId, split }) =>
+  on('proposeCoalition', ({ toId, zoneId, split }) =>
     gameAction((g, pid) => g.proposeCoalition(pid, toId, zoneId, split))
   );
-  socket.on('respondCoalition', ({ offerId, accept }) =>
+  on('respondCoalition', ({ offerId, accept }) =>
     gameAction((g, pid) => g.respondCoalition(pid, offerId, !!accept))
   );
-  socket.on('cancelCoalition', ({ offerId }) =>
+  on('cancelCoalition', ({ offerId }) =>
     gameAction((g, pid) => g.cancelCoalition(pid, offerId))
   );
-  socket.on('withdrawCoalition', ({ zoneId }) =>
+  on('withdrawCoalition', ({ zoneId }) =>
     gameAction((g, pid) => g.withdrawCoalition(pid, zoneId))
   );
   // Home turfs (DD-24): use a held zone's turf power.
-  socket.on('useHomeTurf', ({ zoneId, targetSpec }) =>
+  on('useHomeTurf', ({ zoneId, targetSpec }) =>
     gameAction((g, pid) => g.useHomeTurf(pid, zoneId, targetSpec || null))
   );
   // 2 Player setup (DD-26): secret first-move bid, then requirement placement.
-  socket.on('submitSetupBid', ({ amount }) =>
+  on('submitSetupBid', ({ amount }) =>
     gameAction((g, pid) => g.submitSetupBid(pid, amount))
   );
-  socket.on('placeRequirement', ({ cardId, zoneId }) =>
+  on('placeRequirement', ({ cardId, zoneId }) =>
     gameAction((g, pid) => g.placeRequirement(pid, cardId, zoneId))
   );
-  socket.on('discardResources', ({ discards }) =>
+  on('discardResources', ({ discards }) =>
     gameAction((g, pid) => g.discardResources(pid, discards))
   );
 
   // A client coming back to the foreground asks for the current state instead of trusting
   // that it saw every push while the tab was frozen. Answers only the asker.
-  socket.on('resync', () => {
+  on('resync', () => {
     const p = myPlayer();
     if (p && p.socketId === socket.id) {
       sendState(myRoom, p);
@@ -414,21 +504,21 @@ io.on('connection', (socket) => {
   });
 
   // Chat (lobby and in-game): to = null for the whole table, or a player id for a private line.
-  socket.on('chatSend', (payload, ack) => {
-    const reply = typeof ack === 'function' ? ack : () => {};
+  on('chatSend', (payload, ack) => {
+    const reply = ack || (() => {});
     const p = myPlayer();
     if (!p) return reply({ ok: false, error: 'Not in a room' });
     try {
-      const msg = postMessage(myRoom, p, payload && payload.to != null ? payload.to : null, payload && payload.text);
+      const msg = postMessage(myRoom, p, payload.to != null ? payload.to : null, payload.text);
       deliverChat(myRoom, msg);
-      persist();
+      persist(myRoom);
       reply({ ok: true, id: msg.id });
     } catch (e) {
       reply({ ok: false, error: e.message });
     }
   });
 
-  socket.on('playAgain', () => {
+  on('playAgain', () => {
     if (!myRoom || myToken !== myRoom.hostToken) return fail('Only the host can restart');
     if (!myRoom.game || myRoom.game.phase !== 'GAME_OVER') return fail('Game still running');
     myRoom.game = null;
@@ -437,32 +527,40 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     if (!myRoom || !myToken) return;
-    const room = myRoom;
-    const token = myToken;
-    const p = room.players.get(token);
-    // A newer socket (reopened tab, reconnect) already owns this seat — nothing to do.
-    if (!p || p.socketId !== socket.id) return;
-    p.connected = false;
-    broadcast(room);
-    if (room.game) return;
-    // In lobby: phones drop the socket on screen lock or app switch, so hold the seat
-    // briefly and only remove the player if they haven't come back.
-    setTimeout(() => {
-      if (room.game || p.connected || room.players.get(token) !== p) return;
-      room.players.delete(token);
-      if (room.players.size === 0) {
-        rooms.delete(room.code);
-        persist();
-        return;
-      }
-      if (token === room.hostToken) {
-        room.hostToken = room.players.keys().next().value;
-      }
-      broadcast(room);
-    }, LOBBY_GRACE_MS).unref();
+    try {
+      releaseSeat(myRoom, myToken, socket.id);
+    } catch (e) {
+      console.error('disconnect cleanup failed:', e && e.stack ? e.stack : e);
+    }
   });
 });
 
+server.on('error', (e) => {
+  console.error('server error:', e.message);
+  process.exit(1); // e.g. port in use — let the platform restart us
+});
 server.listen(PORT, () => {
   console.log(`The System running on http://localhost:${PORT}`);
+});
+
+// Platforms stop the process on every deploy (Fly sends SIGINT, Render/Docker SIGTERM).
+// Write any pending snapshot first so in-progress games survive the restart. Sockets are
+// not closed politely on purpose: an abrupt drop makes clients auto-reconnect to the new
+// process, while a server-initiated disconnect would tell them not to.
+for (const sig of ['SIGTERM', 'SIGINT']) {
+  process.on(sig, () => {
+    console.log(`${sig} received — saving rooms and exiting`);
+    flushSave();
+    process.exit(0);
+  });
+}
+
+// Last line of defence: an unexpected error is logged and the snapshot saved, but the
+// process keeps serving — one bad event must not end every game on the server.
+process.on('uncaughtException', (e) => {
+  console.error('uncaught exception:', e && e.stack ? e.stack : e);
+  flushSave();
+});
+process.on('unhandledRejection', (e) => {
+  console.error('unhandled rejection:', e && e.stack ? e.stack : e);
 });

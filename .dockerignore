@@ -8,4 +8,5 @@ data/.rooms-state.json
 *.md
 !README.md
 test
+.github
 .DS_Store

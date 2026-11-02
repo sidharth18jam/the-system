@@ -2132,6 +2132,7 @@ class SystemGame {
     if (this.phase !== 'DISCARD') throw new Error('Not in discard phase');
     if (playerId !== this.activePlayer.id) throw new Error('Not your turn');
     const p = this.activePlayer;
+    if (!discards || typeof discards !== 'object') throw new Error('Choose resources to discard');
     const count = totalResources(discards);
     if (count !== this.discardRequired) {
       throw new Error(`Must discard exactly ${this.discardRequired} resources`);
