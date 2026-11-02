@@ -1009,7 +1009,7 @@ button.primary:hover { background: var(--ink-press); }
 .info-see { border-top: 1px dotted var(--line); padding-top: 8px; margin-top: 4px; font-size: 0.82rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
 .info-see .link-btn { padding: 2px 0; font-size: 0.82rem; text-decoration: underline; }
 /* Feedback sheet (HELP.feedback): three big tap targets. */
-.feedback-btn { margin-top: 8px; }
+.feedback-btn { margin-top: 14px; }
 .feedback-links { display: grid; gap: 8px; margin: 4px 0 12px; }
 .feedback-link {
   display: flex; align-items: center; gap: 12px; padding: 10px 12px;
