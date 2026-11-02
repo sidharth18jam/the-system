@@ -4,6 +4,8 @@
 //   node test/parallel-games.js                  # 10 games against a local server it spawns
 //   GAMES=30 node test/parallel-games.js         # more games
 //   SMOKE_URL=https://your-app.fly.dev node test/parallel-games.js   # against a deployed server
+//     (bots act at machine speed: set SOCKET_EVENT_MAX=100000 on that deployment while testing,
+//      or the per-socket flood guard will stall them)
 //
 // Each game is test/socket-smoke.js (3 bots, a full game to GAME_OVER) in a child process.
 const { spawn } = require('child_process');
@@ -19,7 +21,7 @@ const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS) || (remote ? 300000 : 12
 let serverProc = null;
 if (!remote) {
   serverProc = spawn('node', [path.join(__dirname, '../server/index.js')], {
-    env: { ...process.env, PORT: String(PORT), STATE_FILE: path.join(require('os').tmpdir(), `parallel-${PORT}.json`) },
+    env: { ...process.env, PORT: String(PORT), STATE_FILE: path.join(require('os').tmpdir(), `parallel-${PORT}.json`), SOCKET_EVENT_MAX: '100000' },
     stdio: 'ignore',
   });
   process.on('exit', () => serverProc.kill());
