@@ -305,14 +305,14 @@ const HELP = {
         <li><b>Anything that confused you</b>, or a bug you ran into</li>
       </ul>
       <div class="feedback-links">
-        <a class="feedback-link" href="https://github.com/sidharth18jam/the-system/issues/new?template=game_idea.md" target="_blank" rel="noopener">
+        <a class="feedback-link" href="https://forms.gle/SnTWjgBAAtuRgmY47" target="_blank" rel="noopener">
           <span aria-hidden="true">💡</span><span><b>Share an idea</b><small>Seasons, campaigns, modes, balance</small></span></a>
-        <a class="feedback-link" href="https://github.com/sidharth18jam/the-system/issues/new?template=bug_report.md" target="_blank" rel="noopener">
+        <a class="feedback-link" href="https://forms.gle/SnTWjgBAAtuRgmY47" target="_blank" rel="noopener">
           <span aria-hidden="true">🐞</span><span><b>Report a bug</b><small>Something broke or behaved oddly</small></span></a>
         <a class="feedback-link coffee" href="https://buymeacoffee.com/sid.g" target="_blank" rel="noopener">
           <span aria-hidden="true">☕</span><span><b>Buy me a coffee</b><small>Pays for hosting and development</small></span></a>
       </div>
-      <p class="info-flavour">Ideas and bug reports are posted on GitHub, which needs a free account.</p>`,
+      <p class="info-flavour">Takes a minute. No sign-in needed. I read every reply.</p>`,
   },
 };
 

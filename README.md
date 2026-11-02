@@ -16,6 +16,8 @@ Nothing to install.
 
 <sub>☕ Tips pay for <b>hosting and development</b>: keeping the servers up and new features shipping.</sub>
 
+💡 **Got an idea for a new season, campaign or mode?** [Tell me here](https://forms.gle/SnTWjgBAAtuRgmY47). It takes a minute and needs no sign-in.
+
 <br><br>
 
 ![Players](https://img.shields.io/badge/players-2--5-8a2be2?style=for-the-badge)
