@@ -508,7 +508,7 @@ function stepWalkthrough(d) {
 // Until the walkthrough has been seen once, its entry points stand out.
 function markHowtoSeen() {
   const seen = store.get(WALKTHROUGH_KEY) === 'seen';
-  document.querySelectorAll('.howto-btn').forEach((b) => b.classList.toggle('fresh', !seen));
+  document.querySelectorAll('.howto-btn[data-walkthrough]').forEach((b) => b.classList.toggle('fresh', !seen));
 }
 markHowtoSeen();
 $('wt-next').onclick = () => stepWalkthrough(1);

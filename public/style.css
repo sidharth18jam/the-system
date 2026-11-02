@@ -1008,6 +1008,21 @@ button.primary:hover { background: var(--ink-press); }
 .info-flavour { font-style: italic; color: var(--muted); }
 .info-see { border-top: 1px dotted var(--line); padding-top: 8px; margin-top: 4px; font-size: 0.82rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
 .info-see .link-btn { padding: 2px 0; font-size: 0.82rem; text-decoration: underline; }
+/* Feedback sheet (HELP.feedback): three big tap targets. */
+.feedback-btn { margin-top: 8px; }
+.feedback-links { display: grid; gap: 8px; margin: 4px 0 12px; }
+.feedback-link {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+  border: 1.5px solid var(--ink); border-radius: 2px; background: var(--paper2);
+  color: var(--ink); text-decoration: none; box-shadow: 3px 3px 0 var(--ink);
+  transition: transform .1s, box-shadow .1s;
+}
+.feedback-link > span:first-child { font-size: 1.3rem; }
+.feedback-link b { display: block; }
+.feedback-link small { display: block; color: var(--muted); font-size: 0.78rem; }
+.feedback-link:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.feedback-link:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+.feedback-link.coffee { background: color-mix(in srgb, var(--yellow) 22%, var(--paper)); }
 @media (max-width: 600px) { .modal-box.info-box { padding: 22px 18px; } }
 
 /* ---------- First-time walkthrough (help.js WALKTHROUGH) ---------- */

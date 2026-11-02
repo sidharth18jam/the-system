@@ -26,6 +26,7 @@
       </div>
       <p id="home-error" class="error"></p>
       <button class="howto-btn" data-walkthrough>New here? <b>How to play</b> · 2 min</button>
+      <button class="howto-btn feedback-btn" data-info="feedback">💡 Got an idea? <b>Feedback & support</b></button>
       <a class="credit" href="https://www.shasnthegame.com/" target="_blank" rel="noopener">
         <span class="credit-stamp">Unofficial<br>fan game</span>
         <span class="credit-text">Based on <b>SHASN</b><small>by Memesys Culture Lab</small></span>
@@ -53,6 +54,7 @@
       <button id="btn-start" class="primary hidden">Start Game</button>
       <p id="lobby-wait" class="tagline">Waiting for host to start…</p>
       <button class="howto-btn" data-walkthrough>First game? <b>How to play</b> while you wait</button>
+      <button class="howto-btn feedback-btn" data-info="feedback">💡 Got an idea? <b>Feedback & support</b></button>
       <a class="credit" href="https://www.shasnthegame.com/" target="_blank" rel="noopener">
         <span class="credit-stamp">Unofficial<br>fan game</span>
         <span class="credit-text">Based on <b>SHASN</b><small>by Memesys Culture Lab</small></span>
@@ -269,18 +271,18 @@
       </div>
     </div>
 
-    <!-- ⓘ explainer: one sheet for every info button (content in help.js) -->
-    <div id="modal-info" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="info-title">
-      <div class="modal-box wide info-box">
-        <button id="info-close" class="modal-close" aria-label="Close">✕</button>
-        <h3 id="info-title"></h3>
-        <div id="info-body"></div>
-      </div>
-    </div>
-
   </div>
 
   <!-- Overlays live outside the screens so they show in the lobby as well as in-game. -->
+  <!-- ⓘ explainer: one sheet for every info button (content in help.js) -->
+  <div id="modal-info" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="info-title">
+    <div class="modal-box wide info-box">
+      <button id="info-close" class="modal-close" aria-label="Close">✕</button>
+      <h3 id="info-title"></h3>
+      <div id="info-body"></div>
+    </div>
+  </div>
+
   <!-- First-time walkthrough: six cards, content in help.js (WALKTHROUGH) -->
   <div id="modal-walkthrough" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="wt-title">
     <div class="modal-box wide wt-box">
