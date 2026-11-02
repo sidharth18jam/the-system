@@ -169,9 +169,9 @@ discuss that.
 
 ## Support
 
-If you'd like to help cover hosting and development time, you can
-[buy me a coffee](https://buymeacoffee.com/sid.g). It's entirely optional and doesn't
-unlock anything in the game.
+If you enjoy The System, you can [buy me a coffee](https://buymeacoffee.com/sid.g).
+Every contribution goes toward **hosting and development** — keeping the servers running
+and new features shipping. It's entirely optional and doesn't unlock anything in the game.
 
 ---
 
