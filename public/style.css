@@ -95,8 +95,35 @@ button.primary:hover { background: var(--ink-press); }
   font-family: var(--body);
 }
 .home-box input::placeholder { color: var(--muted); }
-.credit { color: var(--muted); font-size: 0.72rem; line-height: 1.4; margin-top: 18px; }
-.credit a { color: var(--ink); }
+/* Credit to the original game: one link, styled as a stamped ticket. */
+.credit {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 18px; padding: 8px 10px;
+  border: 1.5px solid var(--ink); border-radius: 2px;
+  background: var(--paper2); color: var(--ink);
+  text-decoration: none; text-align: left;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform .1s, box-shadow .1s;
+}
+.credit:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.credit:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.credit:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+.credit-stamp {
+  flex: none; padding: 3px 5px;
+  border: 1.5px solid var(--red); border-radius: 2px; color: var(--red);
+  font-family: var(--mono); font-weight: 700; font-size: 0.58rem;
+  line-height: 1.15; letter-spacing: .5px; text-transform: uppercase; text-align: center;
+  transform: rotate(-6deg);
+}
+.credit-text { flex: 1; min-width: 0; font-size: 0.8rem; line-height: 1.25; }
+.credit-text b { font-family: var(--display); font-weight: 400; letter-spacing: .5px; }
+.credit-text small { display: block; color: var(--muted); font-size: 0.68rem; }
+.credit-cta {
+  flex: none; padding: 5px 8px; border-radius: 2px;
+  background: var(--ink); color: var(--paper);
+  font-size: 0.72rem; font-weight: 700; white-space: nowrap;
+}
+.credit:hover .credit-cta { background: var(--red); }
 #code-input { text-transform: uppercase; letter-spacing: 4px; font-family: var(--mono); font-weight: 700; }
 .join-row { display: flex; gap: 8px; margin-top: 12px; }
 .join-row input { flex: 1; margin: 0; }
