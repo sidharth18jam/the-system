@@ -1572,36 +1572,230 @@ function hash2(str) {
   return h >>> 0;
 }
 
-// Zone outlines in board % — these MUST match the clip-path polygons in style.css.
-const ZONE_POLY = {
-  NW: [[0, 0], [25, 6], [31, 50], [0, 33]],
-  N:  [[25, 6], [75, 6], [69, 50], [50, 31], [31, 50]],
-  NE: [[100, 0], [75, 6], [69, 50], [100, 33]],
-  W:  [[0, 33], [31, 50], [0, 67]],
-  C:  [[50, 31], [69, 50], [50, 69], [31, 50]],
-  E:  [[100, 33], [69, 50], [100, 67]],
-  SW: [[0, 100], [0, 67], [31, 50], [25, 94]],
-  S:  [[25, 94], [75, 94], [69, 50], [50, 69], [31, 50]],
-  SE: [[100, 100], [100, 67], [69, 50], [75, 94]],
-  // 2 Player board (DD-26): six wards ringing the central hexagon.
-  Z1: [[25, 0], [75, 0], [65, 30], [35, 30]],
-  Z2: [[75, 0], [100, 0], [100, 50], [80, 50], [65, 30]],
-  Z3: [[100, 50], [100, 100], [75, 100], [65, 70], [80, 50]],
-  Z4: [[75, 100], [25, 100], [35, 70], [65, 70]],
-  Z5: [[25, 100], [0, 100], [0, 50], [20, 50], [35, 70]],
-  Z6: [[0, 50], [0, 0], [25, 0], [35, 30], [20, 50]],
-  Z7: [[35, 30], [65, 30], [80, 50], [65, 70], [35, 70], [20, 50]],
+// Zone SKELETONS in board % (0–100). These straight-edged polygons fix the map's
+// topology — which districts touch — and must stay in step with the engine's
+// adjacency. What players see (and click) is the surveyed version built from them
+// below: every edge is redrawn as a deterministic, irregular border.
+const SKELETON_SRC = {
+  // 9-zone board. Uptown (NW) and Fleet Lane (NE) meet over Chapel Fields' head;
+  // the Sprawl (SW) and Harbourside (SE) under Old Town's feet. The Ring bridges
+  // ONLY north and south: two lakes (not districts: no voters, no adjacency) keep
+  // it from West and East. Every district's LAND AREA is proportional to its voter
+  // capacity (fitted numerically; re-fit if capacities change), so a district's
+  // size on the map tells you how much it is worth.
+  NW: [[0, 0], [56, 0], [51.5, 7.5], [49, 12], [39.5, 12.5], [29, 15.5], [24.5, 24], [32, 27.5], [24, 30], [18, 27], [11.5, 19.5], [0, 20.5]],
+  N:  [[49, 12], [60, 14.5], [66, 24], [62.5, 28.5], [59, 33.5], [50, 29.5], [39, 32.5], [32, 27.5], [24.5, 24], [29, 15.5], [39.5, 12.5]],
+  NE: [[56, 0], [100, 0], [100, 29], [89, 16], [73, 23.5], [62.5, 28.5], [66, 24], [60, 14.5], [49, 12], [51.5, 7.5]],
+  W:  [[0, 20.5], [11.5, 19.5], [18, 27], [24, 30], [24, 61.5], [14, 65], [0, 70]],
+  C:  [[39, 32.5], [50, 29.5], [59, 33.5], [62, 58], [50, 59], [36, 57.5]],
+  E:  [[100, 29], [100, 62.5], [87, 62.5], [75, 55.5], [73, 23.5], [89, 16]],
+  SW: [[0, 70], [14, 65], [24, 61.5], [30.5, 65.5], [34.5, 72.5], [37.5, 80.5], [48.5, 81], [43, 90], [41, 100], [0, 100]],
+  S:  [[36, 57.5], [50, 59], [62, 58], [66, 64.5], [72, 72], [69.5, 80.5], [60, 79.5], [48.5, 81], [37.5, 80.5], [34.5, 72.5], [30.5, 65.5]],
+  SE: [[100, 62.5], [100, 100], [41, 100], [43, 90], [48.5, 81], [60, 79.5], [69.5, 80.5], [72, 72], [66, 64.5], [75, 55.5], [87, 62.5]],
+  // 2 Player board (DD-26): six wards ringing the lakes; the Ring bridges only
+  // Uptown (Z1) and Old Town (Z4). Areas proportional to capacity, as above.
+  Z1: [[31.5, 0], [70, 0], [66.5, 14], [71, 24.5], [67, 30.5], [50, 23.5], [33.5, 30.5], [32.5, 27], [37.5, 14]],
+  Z2: [[70, 0], [100, 0], [100, 51.5], [90.5, 50.5], [81, 47.5], [78.5, 37], [71, 24.5], [66.5, 14]],
+  Z3: [[100, 51.5], [100, 100], [68, 100], [61.5, 86], [67, 73.5], [74.5, 61.5], [81, 47.5], [90.5, 50.5]],
+  Z4: [[30.5, 100], [33, 86], [29, 75], [32, 69.5], [50, 75.5], [66.5, 69.5], [67, 73.5], [61.5, 86], [68, 100]],
+  Z5: [[0, 48.5], [9, 49.5], [19.5, 52.5], [21.5, 63], [29, 75], [33, 86], [30.5, 100], [0, 100]],
+  Z6: [[0, 0], [31.5, 0], [37.5, 14], [32.5, 27], [25.5, 39], [19.5, 52.5], [9, 49.5], [0, 48.5]],
+  Z7: [[33.5, 30.5], [50, 23.5], [67, 30.5], [66.5, 69.5], [50, 75.5], [32, 69.5]],
 };
+
+// The country is an ISLAND: the skeleton is drawn in a 0–100 design space, then
+// pulled in off the frame so open sea surrounds every district.
+const ISLAND = (v) => 5 + v * 0.9;
+// Frame corners are pulled in further, so the coast rounds off instead of squaring.
+const toIsland = ([x, y]) => {
+  const corner = (x === 0 || x === 100) && (y === 0 || y === 100);
+  return corner ? [x ? 90 : 10, y ? 90 : 10] : [ISLAND(x), ISLAND(y)];
+};
+const ZONE_SKELETON = {};
+for (const id of Object.keys(SKELETON_SRC)) ZONE_SKELETON[id] = SKELETON_SRC[id].map(toIsland);
+
+// ---- Surveyed borders ---------------------------------------------------------
+// Each skeleton edge becomes a wandering line by recursive midpoint displacement
+// (deterministic: hashed from the edge's endpoints, so every client draws the same
+// map). A shared edge is generated ONCE in a canonical direction and reversed for the
+// neighbour, so the two districts meet seamlessly with no gaps or overlaps. Edges that
+// touch no other district are coastline: subdivided finer and rougher.
+const edgeKey = (a, b) => {
+  const ka = a.join(','), kb = b.join(',');
+  return ka < kb ? ka + '|' + kb : kb + '|' + ka;
+};
+// Coast = an edge only one district on its board uses (the 2 Player wards are "Z*").
+const COAST = new Set();
+for (const board of [(id) => id[0] === 'Z', (id) => id[0] !== 'Z']) {
+  const count = new Map();
+  for (const id of Object.keys(ZONE_SKELETON).filter(board)) {
+    const sk = ZONE_SKELETON[id];
+    sk.forEach((a, i) => {
+      const k = edgeKey(a, sk[(i + 1) % sk.length]);
+      count.set(k, (count.get(k) || 0) + 1);
+    });
+  }
+  for (const [k, n] of count) if (n === 1) COAST.add(k);
+}
+function displaceEdge(key, p0, p1, coast, calm) {
+  // Points carry their position t along the chord so the wobble can fade out
+  // near the ends: borders leave every junction cleanly, never clipping a neighbour.
+  let pts = [[p0[0], p0[1], 0], [p1[0], p1[1], 1]];
+  const depth = coast ? 7 : 5;
+  for (let lvl = 0; lvl < depth; lvl++) {
+    const next = [pts[0]];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p = pts[i], q = pts[i + 1];
+      const dx = q[0] - p[0], dy = q[1] - p[1];
+      const len = Math.hypot(dx, dy) || 1;
+      const t = (p[2] + q[2]) / 2;
+      const fade = Math.min(1, Math.min(t, 1 - t) / 0.12);
+      const u = (hash2(key + ':' + lvl + ':' + i) / 4294967295) * 2 - 1;
+      const k = coast ? (lvl === 0 ? 0.05 : lvl < 3 ? 0.12 : 0.2) : lvl === 0 ? 0.09 : 0.15;
+      const amp = len * k * u * calm * fade;
+      next.push([(p[0] + q[0]) / 2 - (dy / len) * amp, (p[1] + q[1]) / 2 + (dx / len) * amp, t], q);
+    }
+    pts = next;
+  }
+  // Area-neutral: cancel the line's net bulge off its chord with a smooth
+  // counter-bulge, so every district keeps exactly the land its skeleton gives it
+  // (district size is proportional to voters — see SKELETON_SRC).
+  const cx = p1[0] - p0[0], cy = p1[1] - p0[1];
+  const L = Math.hypot(cx, cy) || 1;
+  const nx = -cy / L, ny = cx / L;
+  let bulge = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1];
+    const ha = (a[0] - p0[0]) * nx + (a[1] - p0[1]) * ny;
+    const hb = (b[0] - p0[0]) * nx + (b[1] - p0[1]) * ny;
+    const da = (a[0] - p0[0]) * (cx / L) + (a[1] - p0[1]) * (cy / L);
+    const db = (b[0] - p0[0]) * (cx / L) + (b[1] - p0[1]) * (cy / L);
+    bulge += ((ha + hb) / 2) * (db - da);
+  }
+  const k = bulge / ((2 / 3) * L); // a parabola of height k encloses (2/3)·L·k
+  return pts.map(([x, y, t]) => {
+    const h = -k * 4 * t * (1 - t);
+    return [x + nx * h, y + ny * h];
+  });
+}
+function selfCrosses(pts) {
+  const side = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  for (let i = 0; i < pts.length - 1; i++) {
+    for (let j = i + 2; j < pts.length - 1; j++) {
+      const a = pts[i], b = pts[i + 1], c = pts[j], d = pts[j + 1];
+      if (side(c, d, a) * side(c, d, b) < 0 && side(a, b, c) * side(a, b, d) < 0) return true;
+    }
+  }
+  return false;
+}
+const edgeCache = new Map();
+function roughEdge(a, b) {
+  const key = edgeKey(a, b);
+  const flip = a.join(',') > b.join(',');
+  if (!edgeCache.has(key)) {
+    const coast = COAST.has(key);
+    const p0 = flip ? b : a, p1 = flip ? a : b;
+    // Calm the wobble until the line never crosses itself (rare hash spikes).
+    let pts;
+    for (let calm = 1; calm > 0.2; calm -= 0.2) {
+      pts = displaceEdge(key, p0, p1, coast, calm);
+      if (!selfCrosses(pts)) break;
+    }
+    edgeCache.set(key, pts);
+  }
+  const pts = edgeCache.get(key);
+  return flip ? pts.slice().reverse() : pts;
+}
+function roughPoly(skel) {
+  const out = [];
+  for (let i = 0; i < skel.length; i++) {
+    const e = roughEdge(skel[i], skel[(i + 1) % skel.length]);
+    for (let k = 0; k < e.length - 1; k++) out.push(e[k]); // next edge supplies the shared vertex
+  }
+  return out;
+}
+const ZONE_POLY = {};
+for (const id of Object.keys(ZONE_SKELETON)) ZONE_POLY[id] = roughPoly(ZONE_SKELETON[id]);
+const ZONE_CLIP = {};
+for (const id of Object.keys(ZONE_POLY)) {
+  ZONE_CLIP[id] = 'polygon(' + ZONE_POLY[id].map(([x, y]) => `${x.toFixed(2)}% ${y.toFixed(2)}%`).join(',') + ')';
+}
+const ptsAttr = (pts) => pts.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(' ');
+
+// The map's ink layer for whichever board is in play: open sea where no district
+// reaches the frame, a coloured inner band hugging each held district (the way a
+// returning officer's map marks a won seat), and the cased district borders.
+const mapLayerCache = new Map();
+function mapBorders(ids) {
+  const key = ids.slice().sort().join(',');
+  if (mapLayerCache.has(key)) return mapLayerCache.get(key);
+  const edges = new Map(); // canonical edge key → { a, b, count }
+  for (const id of ids) {
+    const sk = ZONE_SKELETON[id];
+    if (!sk) continue;
+    sk.forEach((a, i) => {
+      const b = sk[(i + 1) % sk.length];
+      const k = edgeKey(a, b);
+      const e = edges.get(k) || { a, b, count: 0 };
+      e.count++;
+      edges.set(k, e);
+    });
+  }
+  let inner = '', coast = '';
+  for (const e of edges.values()) {
+    const d = 'M' + ptsAttr(roughEdge(e.a, e.b)).replace(/ /g, ' L');
+    if (e.count > 1) inner += d + ' ';
+    else coast += d + ' ';
+  }
+  // Sea: the sheet minus the union of districts, painted with even-odd fill.
+  let sea = '';
+  if (coast) {
+    sea = 'M0,0 L100,0 L100,100 L0,100 Z ' +
+      ids.filter((id) => ZONE_POLY[id]).map((id) => 'M' + ptsAttr(ZONE_POLY[id]).replace(/ /g, ' L') + ' Z').join(' ');
+  }
+  const out = { inner, coast, sea };
+  mapLayerCache.set(key, out);
+  return out;
+}
+
+function mapSvg(zones) {
+  const { inner, coast, sea } = mapBorders(zones.map((z) => z.id));
+  const bands = zones
+    .filter((z) => z.majorityOwner && ZONE_POLY[z.id])
+    .map((z) => {
+      const owner = playerById(z.majorityOwner);
+      if (!owner) return '';
+      return `<clipPath id="mclip-${z.id}"><polygon points="${ptsAttr(ZONE_POLY[z.id])}"/></clipPath>` +
+        `<polygon class="mband band-${owner.color}" clip-path="url(#mclip-${z.id})" points="${ptsAttr(ZONE_POLY[z.id])}"/>`;
+    })
+    .join('');
+  return `<svg class="map-ink" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <defs><pattern id="mwaves" width="6" height="3" patternUnits="userSpaceOnUse"><path d="M0,1.5 q1.5,-1 3,0 t3,0" fill="none" stroke="#5f86a8" stroke-width="0.18" opacity="0.55"/></pattern></defs>
+    ${sea ? `<clipPath id="mseaclip"><path clip-rule="evenodd" d="${sea}"/></clipPath>
+      <path class="msea" fill-rule="evenodd" d="${sea}"/>
+      <g clip-path="url(#mseaclip)">
+        <path class="mdepth d4" d="${coast}"/><path class="mdepth d3" d="${coast}"/>
+        <path class="mdepth d2" d="${coast}"/><path class="mdepth d1" d="${coast}"/>
+        <path class="msea-waves" fill-rule="evenodd" d="${sea}"/>
+      </g>` : ''}
+    ${bands}
+    ${coast ? `<path class="mcoast" d="${coast}"/>` : ''}
+    <path class="mborder-casing" d="${inner}"/>
+    <path class="mborder" d="${inner}"/>
+  </svg>`;
+}
+
 // Rectangles (board %, [x0,y0,x1,y1]) the label plates occupy — pegs steer clear
 // so text never sits on top of a voter (roomy enough to also clear a capture stamp).
 const LABEL_BOX = {
-  NW: [0, 1, 33, 22], N: [35, 1, 65, 14], NE: [67, 1, 100, 22],
-  W:  [0, 32, 31, 48], C: [38, 32, 62, 49], E: [69, 32, 100, 48],
-  SW: [0, 79, 33, 99], S: [35, 85, 65, 99], SE: [67, 78, 100, 99],
+  NW: [0, 0, 30, 14], N: [38, 12, 60, 22], NE: [70, 0, 100, 14],
+  W:  [0, 21, 22, 32], C: [39, 31, 59, 41], E: [76, 29, 100, 40],
+  SW: [0, 86, 30, 100], S: [38, 64, 62, 75], SE: [70, 86, 100, 100],
   Z1: [35, 1, 65, 12], Z2: [72, 1, 100, 16], Z3: [72, 84, 100, 99],
   Z4: [35, 88, 65, 99], Z5: [0, 84, 28, 99], Z6: [0, 1, 28, 16],
   Z7: [37, 42, 63, 57],
 };
+for (const id of Object.keys(LABEL_BOX)) LABEL_BOX[id] = LABEL_BOX[id].map(ISLAND);
 const PEG_MARGIN = 2.4; // board-% clearance a peg centre keeps from any border
 
 function pointInPoly(poly, x, y) {
@@ -1656,7 +1850,13 @@ function zoneCandidates(zoneId, step) {
   return pts;
 }
 
+const slotCache = new Map();
 function slotPositions(zoneId, n) {
+  const key = zoneId + '#' + n;
+  if (!slotCache.has(key)) slotCache.set(key, computeSlotPositions(zoneId, n));
+  return slotCache.get(key);
+}
+function computeSlotPositions(zoneId, n) {
   if (n <= 0) return [];
   const poly = ZONE_POLY[zoneId];
   if (!poly) {
@@ -1816,7 +2016,7 @@ function renderBoard() {
       fills.push(
         `<div class="zone ${selectable ? 'selectable' : ''} ${z.blocked ? 'blocked' : ''} ${
           owner ? 'owned-' + owner.color : ''
-        }" data-zone="${z.id}"></div>`
+        }" data-zone="${z.id}"${ZONE_CLIP[z.id] ? ` style="clip-path:${ZONE_CLIP[z.id]}"` : ''}></div>`
       );
       overlays.push(`<div class="zgroup" data-zone="${z.id}">
         <div class="zbody">
@@ -1830,7 +2030,7 @@ function renderBoard() {
         <div class="zpegs">${slots.join('')}</div>
       </div>`);
     });
-  $('board').innerHTML = fills.join('') + `<div id="board-overlay">${overlays.join('')}</div>`;
+  $('board').innerHTML = fills.join('') + mapSvg(state.zones) + `<div id="board-overlay">${overlays.join('')}</div>`;
 
   document.querySelectorAll('[data-withdraw]').forEach((b) => {
     b.onclick = (ev) => {
