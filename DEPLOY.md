@@ -48,7 +48,7 @@ dashboard GitHub auto-deploy: it deploys every push, tested or not.
 
 **One-time setup (CLI):**
 1. `fly launch --no-deploy` — pick an app name (it becomes `https://<name>.fly.dev`), keep the
-   region (`sin`). Fly reads `fly.toml`: one always-on 512 MB machine, a 1 GB volume at `/data`
+   region (`sin`). Fly reads `fly.toml`: one always-on 1 GB machine, a 1 GB volume at `/data`
    for durable games, and a `/healthz` check.
 2. `fly deploy` for the first deploy. If it reports the volume is missing:
    `fly volumes create system_data --size 1 --region sin`.
@@ -65,7 +65,7 @@ Keep the app at **one machine**. Rooms live in that process's memory, and every 
 room must reach the same process. One machine comfortably runs dozens of games at once; use
 `test/parallel-games.js` (below) to check a deployment.
 
-`fly.toml` raises Fly's connection limit from its default of 25 per machine to 1000. Each
+`fly.toml` raises Fly's connection limit from its default of 25 per machine to 2500. Each
 player holds one WebSocket, so the default would cap you at about 8 three-player games.
 
 ## Local Docker
