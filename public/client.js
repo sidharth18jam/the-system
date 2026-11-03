@@ -1577,27 +1577,30 @@ function hash2(str) {
 // adjacency. What players see (and click) is the surveyed version built from them
 // below: every edge is redrawn as a deterministic, irregular border.
 const SKELETON_SRC = {
-  // 9-zone board. North-West and North-East meet over North's head; South-West
-  // and South-East meet under South's feet. Center bridges ONLY North and South:
-  // two lakes (not districts: no voters, no adjacency) keep it from West and East.
-  // Borders are deliberately lopsided so districts interlock rather than tile.
-  NW: [[0, 0], [58, 0], [53, 9], [50, 17], [40, 18], [30, 20], [26, 28], [34, 36], [24, 40], [16, 38], [10, 30], [0, 28]],
-  N:  [[50, 17], [62, 19], [68, 28], [66, 36], [60, 42], [50, 40], [40, 42], [34, 36], [26, 28], [30, 20], [40, 18]],
-  NE: [[58, 0], [100, 0], [100, 36], [89, 38], [77, 40], [66, 36], [68, 28], [62, 19], [50, 17], [53, 9]],
-  W:  [[0, 28], [10, 30], [16, 38], [24, 40], [24, 62], [14, 66], [0, 70]],
-  C:  [[40, 42], [50, 40], [60, 42], [60, 58], [50, 61], [40, 58]],
-  E:  [[100, 36], [100, 64], [86, 68], [77, 60], [77, 40], [89, 38]],
-  SW: [[0, 70], [14, 66], [24, 62], [34, 64], [36, 72], [38, 80], [50, 83], [46, 91], [42, 100], [0, 100]],
-  S:  [[40, 58], [50, 61], [60, 58], [66, 64], [74, 72], [70, 82], [60, 82], [50, 83], [38, 80], [36, 72], [34, 64]],
-  SE: [[100, 64], [100, 100], [42, 100], [46, 91], [50, 83], [60, 82], [70, 82], [74, 72], [66, 64], [77, 60], [86, 68]],
-  // 2 Player board (DD-26): six wards ringing the central hexagon.
-  Z1: [[25, 0], [75, 0], [65, 30], [35, 30]],
-  Z2: [[75, 0], [100, 0], [100, 50], [80, 50], [65, 30]],
-  Z3: [[100, 50], [100, 100], [75, 100], [65, 70], [80, 50]],
-  Z4: [[75, 100], [25, 100], [35, 70], [65, 70]],
-  Z5: [[25, 100], [0, 100], [0, 50], [20, 50], [35, 70]],
-  Z6: [[0, 50], [0, 0], [25, 0], [35, 30], [20, 50]],
-  Z7: [[35, 30], [65, 30], [80, 50], [65, 70], [35, 70], [20, 50]],
+  // 9-zone board. Uptown (NW) and Fleet Lane (NE) meet over Chapel Fields' head;
+  // the Sprawl (SW) and Harbourside (SE) under Old Town's feet. The Ring bridges
+  // ONLY north and south: two lakes (not districts: no voters, no adjacency) keep
+  // it from West and East. Every district's LAND AREA is proportional to its voter
+  // capacity (fitted numerically; re-fit if capacities change), so a district's
+  // size on the map tells you how much it is worth.
+  NW: [[0, 0], [56, 0], [51.5, 7.5], [49, 12], [39.5, 12.5], [29, 15.5], [24.5, 24], [32, 27.5], [24, 30], [18, 27], [11.5, 19.5], [0, 20.5]],
+  N:  [[49, 12], [60, 14.5], [66, 24], [62.5, 28.5], [59, 33.5], [50, 29.5], [39, 32.5], [32, 27.5], [24.5, 24], [29, 15.5], [39.5, 12.5]],
+  NE: [[56, 0], [100, 0], [100, 29], [89, 16], [73, 23.5], [62.5, 28.5], [66, 24], [60, 14.5], [49, 12], [51.5, 7.5]],
+  W:  [[0, 20.5], [11.5, 19.5], [18, 27], [24, 30], [24, 61.5], [14, 65], [0, 70]],
+  C:  [[39, 32.5], [50, 29.5], [59, 33.5], [62, 58], [50, 59], [36, 57.5]],
+  E:  [[100, 29], [100, 62.5], [87, 62.5], [75, 55.5], [73, 23.5], [89, 16]],
+  SW: [[0, 70], [14, 65], [24, 61.5], [30.5, 65.5], [34.5, 72.5], [37.5, 80.5], [48.5, 81], [43, 90], [41, 100], [0, 100]],
+  S:  [[36, 57.5], [50, 59], [62, 58], [66, 64.5], [72, 72], [69.5, 80.5], [60, 79.5], [48.5, 81], [37.5, 80.5], [34.5, 72.5], [30.5, 65.5]],
+  SE: [[100, 62.5], [100, 100], [41, 100], [43, 90], [48.5, 81], [60, 79.5], [69.5, 80.5], [72, 72], [66, 64.5], [75, 55.5], [87, 62.5]],
+  // 2 Player board (DD-26): six wards ringing the lakes; the Ring bridges only
+  // Uptown (Z1) and Old Town (Z4). Areas proportional to capacity, as above.
+  Z1: [[31.5, 0], [70, 0], [66.5, 14], [71, 24.5], [67, 30.5], [50, 23.5], [33.5, 30.5], [32.5, 27], [37.5, 14]],
+  Z2: [[70, 0], [100, 0], [100, 51.5], [90.5, 50.5], [81, 47.5], [78.5, 37], [71, 24.5], [66.5, 14]],
+  Z3: [[100, 51.5], [100, 100], [68, 100], [61.5, 86], [67, 73.5], [74.5, 61.5], [81, 47.5], [90.5, 50.5]],
+  Z4: [[30.5, 100], [33, 86], [29, 75], [32, 69.5], [50, 75.5], [66.5, 69.5], [67, 73.5], [61.5, 86], [68, 100]],
+  Z5: [[0, 48.5], [9, 49.5], [19.5, 52.5], [21.5, 63], [29, 75], [33, 86], [30.5, 100], [0, 100]],
+  Z6: [[0, 0], [31.5, 0], [37.5, 14], [32.5, 27], [25.5, 39], [19.5, 52.5], [9, 49.5], [0, 48.5]],
+  Z7: [[33.5, 30.5], [50, 23.5], [67, 30.5], [66.5, 69.5], [50, 75.5], [32, 69.5]],
 };
 
 // The country is an ISLAND: the skeleton is drawn in a 0–100 design space, then
@@ -1635,7 +1638,9 @@ for (const board of [(id) => id[0] === 'Z', (id) => id[0] !== 'Z']) {
   for (const [k, n] of count) if (n === 1) COAST.add(k);
 }
 function displaceEdge(key, p0, p1, coast, calm) {
-  let pts = [p0, p1];
+  // Points carry their position t along the chord so the wobble can fade out
+  // near the ends: borders leave every junction cleanly, never clipping a neighbour.
+  let pts = [[p0[0], p0[1], 0], [p1[0], p1[1], 1]];
   const depth = coast ? 7 : 5;
   for (let lvl = 0; lvl < depth; lvl++) {
     const next = [pts[0]];
@@ -1643,14 +1648,35 @@ function displaceEdge(key, p0, p1, coast, calm) {
       const p = pts[i], q = pts[i + 1];
       const dx = q[0] - p[0], dy = q[1] - p[1];
       const len = Math.hypot(dx, dy) || 1;
+      const t = (p[2] + q[2]) / 2;
+      const fade = Math.min(1, Math.min(t, 1 - t) / 0.12);
       const u = (hash2(key + ':' + lvl + ':' + i) / 4294967295) * 2 - 1;
       const k = coast ? (lvl === 0 ? 0.05 : lvl < 3 ? 0.12 : 0.2) : lvl === 0 ? 0.09 : 0.15;
-      const amp = len * k * u * calm;
-      next.push([(p[0] + q[0]) / 2 - (dy / len) * amp, (p[1] + q[1]) / 2 + (dx / len) * amp], q);
+      const amp = len * k * u * calm * fade;
+      next.push([(p[0] + q[0]) / 2 - (dy / len) * amp, (p[1] + q[1]) / 2 + (dx / len) * amp, t], q);
     }
     pts = next;
   }
-  return pts;
+  // Area-neutral: cancel the line's net bulge off its chord with a smooth
+  // counter-bulge, so every district keeps exactly the land its skeleton gives it
+  // (district size is proportional to voters — see SKELETON_SRC).
+  const cx = p1[0] - p0[0], cy = p1[1] - p0[1];
+  const L = Math.hypot(cx, cy) || 1;
+  const nx = -cy / L, ny = cx / L;
+  let bulge = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1];
+    const ha = (a[0] - p0[0]) * nx + (a[1] - p0[1]) * ny;
+    const hb = (b[0] - p0[0]) * nx + (b[1] - p0[1]) * ny;
+    const da = (a[0] - p0[0]) * (cx / L) + (a[1] - p0[1]) * (cy / L);
+    const db = (b[0] - p0[0]) * (cx / L) + (b[1] - p0[1]) * (cy / L);
+    bulge += ((ha + hb) / 2) * (db - da);
+  }
+  const k = bulge / ((2 / 3) * L); // a parabola of height k encloses (2/3)·L·k
+  return pts.map(([x, y, t]) => {
+    const h = -k * 4 * t * (1 - t);
+    return [x + nx * h, y + ny * h];
+  });
 }
 function selfCrosses(pts) {
   const side = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
@@ -1762,9 +1788,9 @@ function mapSvg(zones) {
 // Rectangles (board %, [x0,y0,x1,y1]) the label plates occupy — pegs steer clear
 // so text never sits on top of a voter (roomy enough to also clear a capture stamp).
 const LABEL_BOX = {
-  NW: [0, 0, 30, 16], N: [38, 17, 62, 28], NE: [70, 0, 100, 16],
-  W:  [0, 28, 22, 40], C: [40, 41, 60, 51], E: [78, 33, 100, 46],
-  SW: [0, 86, 30, 100], S: [38, 68, 62, 79], SE: [70, 86, 100, 100],
+  NW: [0, 0, 30, 14], N: [38, 12, 60, 22], NE: [70, 0, 100, 14],
+  W:  [0, 21, 22, 32], C: [39, 31, 59, 41], E: [76, 29, 100, 40],
+  SW: [0, 86, 30, 100], S: [38, 64, 62, 75], SE: [70, 86, 100, 100],
   Z1: [35, 1, 65, 12], Z2: [72, 1, 100, 16], Z3: [72, 84, 100, 99],
   Z4: [35, 88, 65, 99], Z5: [0, 84, 28, 99], Z6: [0, 1, 28, 16],
   Z7: [37, 42, 63, 57],

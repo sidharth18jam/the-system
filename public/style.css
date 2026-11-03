@@ -316,7 +316,7 @@ button.primary:hover { background: var(--ink-press); }
 .zgroup[data-zone='Z4'] .zbody { left: 50%; top: 84%; transform: translateX(-50%); text-align: center; }
 .zgroup[data-zone='Z5'] .zbody { left: 9%;  top: 79%; }
 .zgroup[data-zone='Z6'] .zbody { left: 9%;  top: 9%;  }
-.zgroup[data-zone='Z7'] .zbody { left: 50%; top: 43%; transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='Z7'] .zbody { left: 50%; top: 42%; transform: translateX(-50%); text-align: center; }
 
 /* Election-night wash: the majority holder tints the whole territory.
    Each owned-* class only declares its ideology color (--zc); the actual
@@ -354,13 +354,13 @@ button.primary:hover { background: var(--ink-press); }
   box-shadow: 0 0 0 1px rgba(42, 36, 86, 0.12);
 }
 .zgroup[data-zone='NW'] .zbody { left: 10%; top: 11%;  }
-.zgroup[data-zone='N']  .zbody { left: 50%; top: 21%;  transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='N']  .zbody { left: 50%; top: 17%;  transform: translateX(-50%); text-align: center; }
 .zgroup[data-zone='NE'] .zbody { right: 10%; top: 11%;  text-align: right; }
-.zgroup[data-zone='W']  .zbody { left: 6.5%; top: 31.5%; }
-.zgroup[data-zone='C']  .zbody { left: 50%; top: 43%; transform: translateX(-50%); text-align: center; }
-.zgroup[data-zone='E']  .zbody { right: 6.5%; top: 37%; text-align: right; }
+.zgroup[data-zone='W']  .zbody { left: 6.5%; top: 25%; }
+.zgroup[data-zone='C']  .zbody { left: 50%; top: 34%; transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='E']  .zbody { right: 6.5%; top: 33%; text-align: right; }
 .zgroup[data-zone='SW'] .zbody { left: 10%; bottom: 11%; }
-.zgroup[data-zone='S']  .zbody { left: 50%; top: 67%; transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='S']  .zbody { left: 50%; top: 63%; transform: translateX(-50%); text-align: center; }
 .zgroup[data-zone='SE'] .zbody { right: 10%; bottom: 11%; text-align: right; }
 
 .zgroup .zname {

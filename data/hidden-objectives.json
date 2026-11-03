@@ -51,7 +51,7 @@
   {
     "id": "obj_bigprize",
     "title": "The Big Prize",
-    "text": "End the game holding the South-East, the largest constituency on the map.",
+    "text": "End the game holding Harbourside, the largest constituency on the map.",
     "check": "bigZone",
     "bonus": 3
   },

@@ -160,11 +160,11 @@ function testTargetedTurfs() {
 function testCompulsoryAutoFire() {
   const g = gameInAction(1, 2, 'homeTurfs');
   const p = g.activePlayer;
-  takeZone(g, 'S'); // Restive South: compulsory, burn self 1
+  takeZone(g, 'S'); // Restless Streets (Old Town): compulsory, burn self 1
   takeZone(g, 'W'); // Dockworkers' Union: compulsory, gain 1 clout
   p.resources = { funds: 4, clout: 0, media: 0, trust: 0 };
   g.endTurn(p.id); // compulsory turfs fire before the gerrymander branch
-  assert(p.resources.funds === 3, 'Restive South burned 1 from the largest pile');
+  assert(p.resources.funds === 3, 'Restless Streets (Old Town) burned 1 from the largest pile');
   assert(p.resources.clout === 1, "Dockworkers' Union paid 1 clout");
   assert(g.turfUsed.S === g.turnCounter && g.turfUsed.W === g.turnCounter, 'both marked used');
   assert(g.phase === 'GERRYMANDER', 'turn continues into gerrymander');
