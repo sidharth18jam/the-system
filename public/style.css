@@ -255,10 +255,13 @@ button.primary:hover { background: var(--ink-press); }
 .cap-warn, .res-total.cap-warn { color: var(--red); font-size: 0.75rem; font-weight: 700; }
 
 /* ---------- Board — the constituency map ----------
-   A surveyed electoral map. Center is a small capital diamond in the middle,
-   bordered ONLY by North (a wedge above it) and South (a wedge below) — the two
-   hub districts that fan out to the six rim constituencies. Every inked border
-   is a legal gerrymander route, readable at a glance. */
+   A surveyed electoral map, not a diagram: relief, rivers, woods and roads in a
+   static terrain sheet (map-terrain.svg, built by scripts/build-terrain.js), the
+   districts as translucent washes over it, and an ink layer on top with the sea,
+   cased district borders and the held-seat bands. District SHAPES live in
+   client.js (ZONE_SKELETON → irregular ZONE_POLY); the client applies each one
+   as an inline clip-path and draws the same points as ink, so the click boundary
+   and the drawn border can never drift apart. */
 #board {
   position: relative;
   aspect-ratio: 1;
@@ -267,52 +270,40 @@ button.primary:hover { background: var(--ink-press); }
   max-width: min(680px, max(420px, calc(100vh - 250px)));
   margin: 0 auto;
   border: 3px solid var(--ink);
-  background: var(--paper2);
-  box-shadow: 6px 6px 0 color-mix(in srgb, var(--ink) 18%, transparent);
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
+  background: #ebe3c8 url('map-terrain.svg') center / 100% 100% no-repeat;
+  box-shadow: 8px 8px 0 color-mix(in srgb, var(--ink) 18%, transparent);
 }
-/* halftone print grain over the whole sheet */
-#board::before {
-  content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background-image: radial-gradient(color-mix(in srgb, var(--ink) 12%, transparent) 0.6px, transparent 0.7px);
-  background-size: 11px 11px;
-}
-/* The inked constituency borders, drawn once over the tiles.
-   Center is a small diamond in the middle; North (a downward wedge) and South
-   (an upward wedge) are the only districts that share an edge with it. The other
-   six sit around the rim. Each drawn line is a legal gerrymander route.
-   ⚠ COORDINATE SYNC: every polyline/polygon point in this SVG duplicates a
-   vertex of the nine .zone clip-path polygons below (same 0–100 space;
-   clip-paths write them as percentages). If you move ANY clip-path vertex,
-   update the matching point(s) here, and vice versa — otherwise the drawn
-   ink border diverges from the actual click boundary. The stroke color
-   %232a2456 is --ink hardcoded (var() is illegal inside a data URI). */
-#board::after {
-  content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
-  background-size: 100% 100%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%232a2456' stroke-width='0.5' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpolyline points='25,6 31,50'/%3E%3Cpolyline points='31,50 0,33'/%3E%3Cpolyline points='0,67 31,50'/%3E%3Cpolyline points='31,50 25,94'/%3E%3Cpolyline points='75,6 69,50'/%3E%3Cpolyline points='100,33 69,50'/%3E%3Cpolyline points='69,50 100,67'/%3E%3Cpolyline points='69,50 75,94'/%3E%3Cpolygon points='50,31 69,50 50,69 31,50' stroke-width='0.75'/%3E%3C/g%3E%3C/svg%3E");
-}
-/* Each zone spans the whole sheet, clipped to its territory.
-   clip-path clips pointer events too, so each shape is its own click target. */
-.zone { position: absolute; inset: 0; }
-.zone[data-zone='NW'] { clip-path: polygon(0% 0%, 25% 6%, 31% 50%, 0% 33%);             background-color: #ece4cd; }
-.zone[data-zone='N']  { clip-path: polygon(25% 6%, 75% 6%, 69% 50%, 50% 31%, 31% 50%);  background-color: #f1ecdd; }
-.zone[data-zone='NE'] { clip-path: polygon(100% 0%, 75% 6%, 69% 50%, 100% 33%);         background-color: #ede8d6; }
-.zone[data-zone='W']  { clip-path: polygon(0% 33%, 31% 50%, 0% 67%);                     background-color: #f0ead6; }
-.zone[data-zone='C']  { clip-path: polygon(50% 31%, 69% 50%, 50% 69%, 31% 50%);         background-color: #e7dfc4; }
-.zone[data-zone='E']  { clip-path: polygon(100% 33%, 69% 50%, 100% 67%);                background-color: #ece5d0; }
-.zone[data-zone='SW'] { clip-path: polygon(0% 100%, 0% 67%, 31% 50%, 25% 94%);          background-color: #eee8d2; }
-.zone[data-zone='S']  { clip-path: polygon(25% 94%, 75% 94%, 69% 50%, 50% 69%, 31% 50%);background-color: #f2ecdc; }
-.zone[data-zone='SE'] { clip-path: polygon(100% 100%, 100% 67%, 69% 50%, 75% 94%);      background-color: #ebe3cc; }
+/* Each zone spans the whole sheet, clipped (inline, from client.js) to its territory.
+   clip-path clips pointer events too, so each shape is its own click target.
+   Fills are washes, so the terrain reads through. */
+.zone { position: absolute; inset: 0; transition: background-color 0.25s; }
+.zone[data-zone='NW'], .zone[data-zone='Z6'] { background-color: rgba(176, 150, 96, 0.16); }
+.zone[data-zone='N'],  .zone[data-zone='Z1'] { background-color: rgba(130, 156, 104, 0.12); }
+.zone[data-zone='NE'], .zone[data-zone='Z2'] { background-color: rgba(190, 130, 96, 0.13); }
+.zone[data-zone='W'],  .zone[data-zone='Z5'] { background-color: rgba(150, 140, 110, 0.12); }
+.zone[data-zone='C'],  .zone[data-zone='Z7'] { background-color: rgba(214, 196, 150, 0.30); }
+.zone[data-zone='E'],  .zone[data-zone='Z3'] { background-color: rgba(120, 150, 150, 0.12); }
+.zone[data-zone='SW'], .zone[data-zone='Z4'] { background-color: rgba(140, 160, 100, 0.14); }
+.zone[data-zone='S']                          { background-color: rgba(196, 160, 110, 0.12); }
+.zone[data-zone='SE']                         { background-color: rgba(160, 120, 130, 0.12); }
 
-/* 2 Player board (DD-26): six wards around the central Ring. Same 0–100 space —
-   vertices MUST match ZONE_POLY in client.js. */
-.zone[data-zone='Z1'] { clip-path: polygon(25% 0%, 75% 0%, 65% 30%, 35% 30%);                     background-color: #f1ecdd; }
-.zone[data-zone='Z2'] { clip-path: polygon(75% 0%, 100% 0%, 100% 50%, 80% 50%, 65% 30%);          background-color: #ece4cd; }
-.zone[data-zone='Z3'] { clip-path: polygon(100% 50%, 100% 100%, 75% 100%, 65% 70%, 80% 50%);      background-color: #eee8d2; }
-.zone[data-zone='Z4'] { clip-path: polygon(75% 100%, 25% 100%, 35% 70%, 65% 70%);                 background-color: #f2ecdc; }
-.zone[data-zone='Z5'] { clip-path: polygon(25% 100%, 0% 100%, 0% 50%, 20% 50%, 35% 70%);          background-color: #ede8d6; }
-.zone[data-zone='Z6'] { clip-path: polygon(0% 50%, 0% 0%, 25% 0%, 35% 30%, 20% 50%);              background-color: #f0ead6; }
-.zone[data-zone='Z7'] { clip-path: polygon(35% 30%, 65% 30%, 80% 50%, 65% 70%, 35% 70%, 20% 50%); background-color: #e7dfc4; }
+/* Ink layer: sea, held-seat bands and borders. Above the fills, below labels/pegs. */
+.map-ink { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; overflow: visible; }
+.map-ink .msea { fill: #b9cfdb; }
+.map-ink .msea-waves { fill: url(#mwaves); }
+.map-ink .mcoast-glow { fill: none; stroke: #8fb2c8; stroke-width: 1.6; opacity: 0.45; stroke-linejoin: round; }
+.map-ink .mcoast { fill: none; stroke: #3d5a74; stroke-width: 0.32; stroke-linejoin: round; }
+.map-ink .mborder-casing { fill: none; stroke: #f4eedc; stroke-width: 1.15; opacity: 0.75; stroke-linejoin: round; stroke-linecap: round; }
+.map-ink .mborder { fill: none; stroke: var(--ink); stroke-width: 0.42; stroke-linejoin: round; stroke-linecap: round; }
+/* A held seat gets a broad inner band in the holder's colour, like a marked-up map. */
+.map-ink .mband { fill: none; stroke-width: 2.6; opacity: 0.55; stroke-linejoin: round; }
+.map-ink .band-green  { stroke: var(--green); }
+.map-ink .band-red    { stroke: var(--red); }
+.map-ink .band-blue   { stroke: var(--blue); }
+.map-ink .band-yellow { stroke: var(--yellow); }
+.map-ink .band-purple { stroke: var(--purple); }
 
 .zgroup[data-zone='Z1'] .zbody { left: 50%; top: 2%;  transform: translateX(-50%); text-align: center; }
 .zgroup[data-zone='Z2'] .zbody { right: 2%; top: 3%;  text-align: right; }
@@ -330,16 +321,16 @@ button.primary:hover { background: var(--ink-press); }
 .zone.owned-blue   { --zc: var(--blue); }
 .zone.owned-yellow { --zc: var(--yellow); }
 .zone.owned-purple { --zc: var(--purple); }
-.zone[class*='owned-'] { background-color: color-mix(in srgb, var(--zc) 20%, var(--paper)); }
+.zone[class*='owned-'] { background-color: color-mix(in srgb, var(--zc) 24%, transparent); }
 
 /* Legal targets light up (placement, gerrymander destinations, perks).
    Owned zones keep their ideology tint mixed INTO the highlight, so
    ownership stays readable while targeting. background-color only —
    never the background shorthand, or the .blocked hatch image is erased. */
-.zone.selectable { cursor: pointer; background-color: #f3e9b4; }
-.zone.selectable:hover { background-color: #eedd8f; }
-.zone.selectable[class*='owned-'] { background-color: color-mix(in srgb, var(--zc) 25%, #f3e9b4); }
-.zone.selectable[class*='owned-']:hover { background-color: color-mix(in srgb, var(--zc) 25%, #eedd8f); }
+.zone.selectable { cursor: pointer; background-color: rgba(245, 222, 120, 0.5); }
+.zone.selectable:hover { background-color: rgba(240, 206, 80, 0.62); }
+.zone.selectable[class*='owned-'] { background-color: color-mix(in srgb, var(--zc) 22%, rgba(245, 222, 120, 0.5)); }
+.zone.selectable[class*='owned-']:hover { background-color: color-mix(in srgb, var(--zc) 22%, rgba(240, 206, 80, 0.62)); }
 
 /* Labels + pegs ride in an UNCLIPPED overlay above the fills, so long district
    names and edge pegs are never cut off by a territory's clip-path. Only the

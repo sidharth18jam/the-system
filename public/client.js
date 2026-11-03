@@ -1572,8 +1572,11 @@ function hash2(str) {
   return h >>> 0;
 }
 
-// Zone outlines in board % — these MUST match the clip-path polygons in style.css.
-const ZONE_POLY = {
+// Zone SKELETONS in board % (0–100). These straight-edged polygons fix the map's
+// topology — which districts touch — and must stay in step with the engine's
+// adjacency. What players see (and click) is the surveyed version built from them
+// below: every edge is redrawn as a deterministic, irregular border.
+const ZONE_SKELETON = {
   NW: [[0, 0], [25, 6], [31, 50], [0, 33]],
   N:  [[25, 6], [75, 6], [69, 50], [50, 31], [31, 50]],
   NE: [[100, 0], [75, 6], [69, 50], [100, 33]],
@@ -1592,6 +1595,119 @@ const ZONE_POLY = {
   Z6: [[0, 50], [0, 0], [25, 0], [35, 30], [20, 50]],
   Z7: [[35, 30], [65, 30], [80, 50], [65, 70], [35, 70], [20, 50]],
 };
+
+// ---- Surveyed borders ---------------------------------------------------------
+// Each skeleton edge becomes a wandering border by recursive midpoint displacement
+// (deterministic: hashed from the edge's endpoints, so every client draws the same
+// map). A shared edge is generated ONCE in a canonical direction and reversed for the
+// neighbour, so the two districts meet seamlessly with no gaps or overlaps. Edges
+// lying on the sheet's frame stay straight.
+const EDGE_DEPTH = 5; // 2^5 = 32 segments per edge
+function onFrame(a, b) {
+  return (a[0] === b[0] && (a[0] === 0 || a[0] === 100)) || (a[1] === b[1] && (a[1] === 0 || a[1] === 100));
+}
+const edgeCache = new Map();
+function roughEdge(a, b) {
+  const ka = a.join(','), kb = b.join(',');
+  const flip = ka > kb;
+  const key = flip ? kb + '|' + ka : ka + '|' + kb;
+  if (!edgeCache.has(key)) {
+    const p0 = flip ? b : a, p1 = flip ? a : b;
+    let pts = [p0, p1];
+    if (!onFrame(p0, p1)) {
+      for (let lvl = 0; lvl < EDGE_DEPTH; lvl++) {
+        const next = [pts[0]];
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p = pts[i], q = pts[i + 1];
+          const dx = q[0] - p[0], dy = q[1] - p[1];
+          const len = Math.hypot(dx, dy) || 1;
+          const u = (hash2(key + ':' + lvl + ':' + i) / 4294967295) * 2 - 1;
+          const amp = len * (lvl === 0 ? 0.09 : 0.15) * u;
+          next.push([(p[0] + q[0]) / 2 - (dy / len) * amp, (p[1] + q[1]) / 2 + (dx / len) * amp], q);
+        }
+        pts = next;
+      }
+    }
+    edgeCache.set(key, pts);
+  }
+  const pts = edgeCache.get(key);
+  return flip ? pts.slice().reverse() : pts;
+}
+function roughPoly(skel) {
+  const out = [];
+  for (let i = 0; i < skel.length; i++) {
+    const e = roughEdge(skel[i], skel[(i + 1) % skel.length]);
+    for (let k = 0; k < e.length - 1; k++) out.push(e[k]); // next edge supplies the shared vertex
+  }
+  return out;
+}
+const ZONE_POLY = {};
+for (const id of Object.keys(ZONE_SKELETON)) ZONE_POLY[id] = roughPoly(ZONE_SKELETON[id]);
+const ZONE_CLIP = {};
+for (const id of Object.keys(ZONE_POLY)) {
+  ZONE_CLIP[id] = 'polygon(' + ZONE_POLY[id].map(([x, y]) => `${x.toFixed(2)}% ${y.toFixed(2)}%`).join(',') + ')';
+}
+const ptsAttr = (pts) => pts.map(([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`).join(' ');
+
+// The map's ink layer for whichever board is in play: open sea where no district
+// reaches the frame, a coloured inner band hugging each held district (the way a
+// returning officer's map marks a won seat), and the cased district borders.
+const mapLayerCache = new Map();
+function mapBorders(ids) {
+  const key = ids.slice().sort().join(',');
+  if (mapLayerCache.has(key)) return mapLayerCache.get(key);
+  const edges = new Map(); // canonical edge key → { a, b, count }
+  for (const id of ids) {
+    const sk = ZONE_SKELETON[id];
+    if (!sk) continue;
+    sk.forEach((a, i) => {
+      const b = sk[(i + 1) % sk.length];
+      if (onFrame(a, b)) return;
+      const ka = a.join(','), kb = b.join(',');
+      const k = ka < kb ? ka + '|' + kb : kb + '|' + ka;
+      const e = edges.get(k) || { a, b, count: 0 };
+      e.count++;
+      edges.set(k, e);
+    });
+  }
+  let inner = '', coast = '';
+  for (const e of edges.values()) {
+    const d = 'M' + ptsAttr(roughEdge(e.a, e.b)).replace(/ /g, ' L');
+    if (e.count > 1) inner += d + ' ';
+    else coast += d + ' ';
+  }
+  // Sea: the sheet minus the union of districts, painted with even-odd fill.
+  let sea = '';
+  if (coast) {
+    sea = 'M0,0 L100,0 L100,100 L0,100 Z ' +
+      ids.filter((id) => ZONE_POLY[id]).map((id) => 'M' + ptsAttr(ZONE_POLY[id]).replace(/ /g, ' L') + ' Z').join(' ');
+  }
+  const out = { inner, coast, sea };
+  mapLayerCache.set(key, out);
+  return out;
+}
+
+function mapSvg(zones) {
+  const { inner, coast, sea } = mapBorders(zones.map((z) => z.id));
+  const bands = zones
+    .filter((z) => z.majorityOwner && ZONE_POLY[z.id])
+    .map((z) => {
+      const owner = playerById(z.majorityOwner);
+      if (!owner) return '';
+      return `<clipPath id="mclip-${z.id}"><polygon points="${ptsAttr(ZONE_POLY[z.id])}"/></clipPath>` +
+        `<polygon class="mband band-${owner.color}" clip-path="url(#mclip-${z.id})" points="${ptsAttr(ZONE_POLY[z.id])}"/>`;
+    })
+    .join('');
+  return `<svg class="map-ink" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <defs><pattern id="mwaves" width="6" height="3" patternUnits="userSpaceOnUse"><path d="M0,1.5 q1.5,-1 3,0 t3,0" fill="none" stroke="#5f86a8" stroke-width="0.18" opacity="0.55"/></pattern></defs>
+    ${sea ? `<path class="msea" fill-rule="evenodd" d="${sea}"/><path class="msea-waves" fill-rule="evenodd" d="${sea}"/>` : ''}
+    ${bands}
+    ${coast ? `<path class="mcoast-glow" d="${coast}"/><path class="mcoast" d="${coast}"/>` : ''}
+    <path class="mborder-casing" d="${inner}"/>
+    <path class="mborder" d="${inner}"/>
+  </svg>`;
+}
+
 // Rectangles (board %, [x0,y0,x1,y1]) the label plates occupy — pegs steer clear
 // so text never sits on top of a voter (roomy enough to also clear a capture stamp).
 const LABEL_BOX = {
@@ -1656,7 +1772,13 @@ function zoneCandidates(zoneId, step) {
   return pts;
 }
 
+const slotCache = new Map();
 function slotPositions(zoneId, n) {
+  const key = zoneId + '#' + n;
+  if (!slotCache.has(key)) slotCache.set(key, computeSlotPositions(zoneId, n));
+  return slotCache.get(key);
+}
+function computeSlotPositions(zoneId, n) {
   if (n <= 0) return [];
   const poly = ZONE_POLY[zoneId];
   if (!poly) {
@@ -1816,7 +1938,7 @@ function renderBoard() {
       fills.push(
         `<div class="zone ${selectable ? 'selectable' : ''} ${z.blocked ? 'blocked' : ''} ${
           owner ? 'owned-' + owner.color : ''
-        }" data-zone="${z.id}"></div>`
+        }" data-zone="${z.id}"${ZONE_CLIP[z.id] ? ` style="clip-path:${ZONE_CLIP[z.id]}"` : ''}></div>`
       );
       overlays.push(`<div class="zgroup" data-zone="${z.id}">
         <div class="zbody">
@@ -1830,7 +1952,7 @@ function renderBoard() {
         <div class="zpegs">${slots.join('')}</div>
       </div>`);
     });
-  $('board').innerHTML = fills.join('') + `<div id="board-overlay">${overlays.join('')}</div>`;
+  $('board').innerHTML = fills.join('') + mapSvg(state.zones) + `<div id="board-overlay">${overlays.join('')}</div>`;
 
   document.querySelectorAll('[data-withdraw]').forEach((b) => {
     b.onclick = (ev) => {
