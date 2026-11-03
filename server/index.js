@@ -593,6 +593,13 @@ server.on('error', (e) => {
 });
 server.listen(PORT, () => {
   console.log(`The System running on http://localhost:${PORT}`);
+  // For LAN play the host must open the network address, not localhost: the invite link and
+  // QR code are built from whatever address the host's browser is on.
+  const lan = Object.values(require('os').networkInterfaces())
+    .flat()
+    .filter((a) => a && a.family === 'IPv4' && !a.internal)
+    .map((a) => `http://${a.address}:${PORT}`);
+  if (lan.length && !process.env.FLY_APP_NAME) console.log(`Same Wi-Fi? Open ${lan.join(' or ')} so invite links work on phones`);
 });
 
 // Platforms stop the process on every deploy (Fly sends SIGINT, Render/Docker SIGTERM).

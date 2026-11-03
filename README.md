@@ -193,9 +193,16 @@ npm install
 npm start          # serves the game on http://localhost:3000
 ```
 
-Open `http://localhost:3000` in 2–5 browser tabs (or on devices on the same network),
-create a room, share the 4-letter code or invite QR, and play. Settings (`PORT`,
-`STATE_FILE`) are listed in [`.env.example`](./.env.example).
+Open `http://localhost:3000` in 2–5 browser tabs, create a room, share the 4-letter code
+or invite QR, and play. Settings (`PORT`, `STATE_FILE`) are listed in
+[`.env.example`](./.env.example).
+
+**Playing on a LAN (phones on the same Wi-Fi):** on start the server prints a line like
+`Same Wi-Fi? Open http://192.168.1.20:3000`. Open **that** address on the host's device,
+not `localhost`: the invite link and QR code use whatever address the host is on, and
+other phones can't reach `localhost`. If phones can't connect, allow Node through the
+computer's firewall (macOS asks the first time; on Windows allow it on Private networks).
+Node 18 or newer is required.
 
 ### 🧪 Running tests
 
