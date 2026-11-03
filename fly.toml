@@ -2,7 +2,7 @@
 #   - Dashboard: fly.io → Launch an App → pick this GitHub repo (it reads this file), or
 #   - CLI: `fly launch --no-deploy` once (pick an app name), then `fly deploy`.
 # Fly may rename `app` to whatever name you pick at launch; app names are global on Fly.
-app = "the-system"
+app = "the-system-game"
 primary_region = "sin"
 
 [build]
