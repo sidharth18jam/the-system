@@ -1577,15 +1577,19 @@ function hash2(str) {
 // adjacency. What players see (and click) is the surveyed version built from them
 // below: every edge is redrawn as a deterministic, irregular border.
 const SKELETON_SRC = {
-  NW: [[0, 0], [25, 6], [31, 50], [0, 33]],
-  N:  [[25, 6], [75, 6], [69, 50], [50, 31], [31, 50]],
-  NE: [[100, 0], [75, 6], [69, 50], [100, 33]],
-  W:  [[0, 33], [31, 50], [0, 67]],
-  C:  [[50, 31], [69, 50], [50, 69], [31, 50]],
-  E:  [[100, 33], [69, 50], [100, 67]],
-  SW: [[0, 100], [0, 67], [31, 50], [25, 94]],
-  S:  [[25, 94], [75, 94], [69, 50], [50, 69], [31, 50]],
-  SE: [[100, 100], [100, 67], [69, 50], [75, 94]],
+  // 9-zone board. The graph is a ring (NW–N–NE–E–SE–S–SW–W) with Center bridging
+  // ONLY North and South. Two lakes (not districts: no voters, no adjacency) sit
+  // either side of Center, so Center, West and East never touch, and North/South
+  // never touch West/East. No borders meet at a bare point.
+  NW: [[0, 0], [33, 0], [30, 20], [32, 31], [24, 34], [0, 34]],
+  N:  [[33, 0], [67, 0], [70, 20], [68, 31], [62, 40], [38, 40], [32, 31], [30, 20]],
+  NE: [[67, 0], [100, 0], [100, 34], [76, 34], [68, 31], [70, 20]],
+  W:  [[0, 34], [24, 34], [24, 66], [0, 66]],
+  C:  [[38, 40], [62, 40], [62, 60], [38, 60]],
+  E:  [[100, 34], [100, 66], [76, 66], [76, 34]],
+  SW: [[0, 66], [24, 66], [32, 69], [30, 80], [33, 100], [0, 100]],
+  S:  [[38, 60], [62, 60], [68, 69], [70, 80], [67, 100], [33, 100], [30, 80], [32, 69]],
+  SE: [[100, 66], [100, 100], [67, 100], [70, 80], [68, 69], [76, 66]],
   // 2 Player board (DD-26): six wards ringing the central hexagon.
   Z1: [[25, 0], [75, 0], [65, 30], [35, 30]],
   Z2: [[75, 0], [100, 0], [100, 50], [80, 50], [65, 30]],
@@ -1630,6 +1634,34 @@ for (const board of [(id) => id[0] === 'Z', (id) => id[0] !== 'Z']) {
   }
   for (const [k, n] of count) if (n === 1) COAST.add(k);
 }
+function displaceEdge(key, p0, p1, coast, calm) {
+  let pts = [p0, p1];
+  const depth = coast ? 7 : 5;
+  for (let lvl = 0; lvl < depth; lvl++) {
+    const next = [pts[0]];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p = pts[i], q = pts[i + 1];
+      const dx = q[0] - p[0], dy = q[1] - p[1];
+      const len = Math.hypot(dx, dy) || 1;
+      const u = (hash2(key + ':' + lvl + ':' + i) / 4294967295) * 2 - 1;
+      const k = coast ? (lvl === 0 ? 0.05 : lvl < 3 ? 0.12 : 0.2) : lvl === 0 ? 0.09 : 0.15;
+      const amp = len * k * u * calm;
+      next.push([(p[0] + q[0]) / 2 - (dy / len) * amp, (p[1] + q[1]) / 2 + (dx / len) * amp], q);
+    }
+    pts = next;
+  }
+  return pts;
+}
+function selfCrosses(pts) {
+  const side = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  for (let i = 0; i < pts.length - 1; i++) {
+    for (let j = i + 2; j < pts.length - 1; j++) {
+      const a = pts[i], b = pts[i + 1], c = pts[j], d = pts[j + 1];
+      if (side(c, d, a) * side(c, d, b) < 0 && side(a, b, c) * side(a, b, d) < 0) return true;
+    }
+  }
+  return false;
+}
 const edgeCache = new Map();
 function roughEdge(a, b) {
   const key = edgeKey(a, b);
@@ -1637,20 +1669,11 @@ function roughEdge(a, b) {
   if (!edgeCache.has(key)) {
     const coast = COAST.has(key);
     const p0 = flip ? b : a, p1 = flip ? a : b;
-    let pts = [p0, p1];
-    const depth = coast ? 7 : 5;
-    for (let lvl = 0; lvl < depth; lvl++) {
-      const next = [pts[0]];
-      for (let i = 0; i < pts.length - 1; i++) {
-        const p = pts[i], q = pts[i + 1];
-        const dx = q[0] - p[0], dy = q[1] - p[1];
-        const len = Math.hypot(dx, dy) || 1;
-        const u = (hash2(key + ':' + lvl + ':' + i) / 4294967295) * 2 - 1;
-        const k = coast ? (lvl === 0 ? 0.05 : lvl < 3 ? 0.12 : 0.24) : lvl === 0 ? 0.09 : 0.15;
-        const amp = len * k * u;
-        next.push([(p[0] + q[0]) / 2 - (dy / len) * amp, (p[1] + q[1]) / 2 + (dx / len) * amp], q);
-      }
-      pts = next;
+    // Calm the wobble until the line never crosses itself (rare hash spikes).
+    let pts;
+    for (let calm = 1; calm > 0.2; calm -= 0.2) {
+      pts = displaceEdge(key, p0, p1, coast, calm);
+      if (!selfCrosses(pts)) break;
     }
     edgeCache.set(key, pts);
   }
@@ -1739,9 +1762,9 @@ function mapSvg(zones) {
 // Rectangles (board %, [x0,y0,x1,y1]) the label plates occupy — pegs steer clear
 // so text never sits on top of a voter (roomy enough to also clear a capture stamp).
 const LABEL_BOX = {
-  NW: [0, 1, 33, 22], N: [35, 1, 65, 14], NE: [67, 1, 100, 22],
-  W:  [0, 32, 31, 48], C: [38, 32, 62, 49], E: [69, 32, 100, 48],
-  SW: [0, 79, 33, 99], S: [35, 85, 65, 99], SE: [67, 78, 100, 99],
+  NW: [0, 0, 30, 16], N: [36, 0, 64, 12], NE: [70, 0, 100, 16],
+  W:  [0, 34, 24, 45], C: [38, 40, 62, 50], E: [76, 34, 100, 45],
+  SW: [0, 86, 30, 100], S: [36, 88, 64, 100], SE: [70, 86, 100, 100],
   Z1: [35, 1, 65, 12], Z2: [72, 1, 100, 16], Z3: [72, 84, 100, 99],
   Z4: [35, 88, 65, 99], Z5: [0, 84, 28, 99], Z6: [0, 1, 28, 16],
   Z7: [37, 42, 63, 57],
