@@ -21,7 +21,7 @@ const TIMEOUT_MS = Number(process.env.SMOKE_TIMEOUT_MS) || (remote ? 300000 : 12
 let serverProc = null;
 if (!remote) {
   serverProc = spawn('node', [path.join(__dirname, '../server/index.js')], {
-    env: { ...process.env, PORT: String(PORT), STATE_FILE: path.join(require('os').tmpdir(), `parallel-${PORT}.json`), SOCKET_EVENT_MAX: '100000' },
+    env: { ...process.env, PORT: String(PORT), STATE_FILE: path.join(require('os').tmpdir(), `parallel-${PORT}.json`), SOCKET_EVENT_MAX: '100000', ROOM_CREATE_MAX: '100000', MAX_CONNS_PER_IP: '100000' },
     stdio: 'ignore',
   });
   process.on('exit', () => serverProc.kill());

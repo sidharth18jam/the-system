@@ -1,4 +1,5 @@
 // The System — server entry: Express static hosting + Socket.IO rooms
+const crypto = require('crypto');
 const http = require('http');
 const path = require('path');
 const express = require('express');
@@ -11,12 +12,45 @@ const limits = require('./limits');
 
 const app = express();
 app.disable('x-powered-by');
+// Browser-side defence in depth. The CSP allows scripts only from this origin (no inline JS,
+// no eval), so even if an escaping bug slips into the client, injected markup can't run code.
+// Inline styles stay allowed: the client renders style="…" attributes. Fonts are Google Fonts.
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data:",
+  "connect-src 'self' wss: ws:",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
+app.use((_req, res, next) => {
+  res.set({
+    'Content-Security-Policy': CSP,
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+  });
+  next();
+});
 app.use(express.static(path.join(__dirname, '../public')));
 app.get('/healthz', (_req, res) => res.type('text').send('ok')); // platform health check
 // Lobby invite QR: encodes the join link the client builds, so phones can scan to join.
 app.get('/qr.svg', async (req, res) => {
   const text = String(req.query.u || '');
   if (!/^https?:\/\//.test(text) || text.length > 300) return res.status(400).end();
+  // Only encode links to this site, so the endpoint can't mint QR codes for phishing URLs
+  // under our domain.
+  let host;
+  try {
+    host = new URL(text).host;
+  } catch {
+    return res.status(400).end();
+  }
+  if (host !== req.get('host')) return res.status(400).end();
   try {
     const svg = await QRCode.toString(text, { type: 'svg', margin: 1 });
     res.type('image/svg+xml').set('Cache-Control', 'public, max-age=86400').send(svg);
@@ -81,8 +115,10 @@ function makeRoomCode() {
   return code;
 }
 
+// A token is the only proof of owning a seat, so it must be unguessable. Math.random's state
+// can be recovered from enough observed outputs (room codes, shuffles), so use the CSPRNG.
 function makeToken() {
-  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  return crypto.randomBytes(16).toString('base64url');
 }
 function makePid() {
   return 'p' + ++pidCounter;
@@ -242,6 +278,22 @@ function releaseSeat(room, token, socketId) {
     broadcast(room);
   }, LOBBY_GRACE_MS).unref();
 }
+
+// Cap open sockets per IP so one script can't use up Fly's connection limit and lock everyone
+// else out. Generous, because a classroom or a mobile carrier's NAT puts many players on one IP.
+const connsByIp = new Map();
+io.use((socket, next) => {
+  const ip = limits.clientIp(socket);
+  const n = connsByIp.get(ip) || 0;
+  if (n >= limits.MAX_CONNS_PER_IP) return next(new Error('Too many connections from your network'));
+  connsByIp.set(ip, n + 1);
+  socket.once('disconnect', () => {
+    const left = (connsByIp.get(ip) || 1) - 1;
+    if (left <= 0) connsByIp.delete(ip);
+    else connsByIp.set(ip, left);
+  });
+  next();
+});
 
 io.on('connection', (socket) => {
   let myRoom = null;

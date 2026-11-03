@@ -50,6 +50,8 @@ module.exports = {
   // Any events from one socket per 2 seconds (a flood guard; real play is far below this).
   SOCKET_EVENT_MAX: num('SOCKET_EVENT_MAX', 120),
   SOCKET_EVENT_WINDOW_MS: 2000,
+  // Open sockets one IP may hold at once (each open tab is one).
+  MAX_CONNS_PER_IP: num('MAX_CONNS_PER_IP', 40),
   // Hard ceiling on rooms held in memory at once.
   MAX_ROOMS: num('MAX_ROOMS', 2000),
 };

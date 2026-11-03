@@ -964,10 +964,15 @@ function playerById(id) {
 function isMyTurn() {
   return state.activePlayerId === myPid;
 }
+// Escape for both text and attribute positions: names and chat land inside title="…" and
+// aria-label="…", so quotes must be escaped too or a crafted name breaks out and runs script.
 function esc(str) {
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
+  return String(str == null ? '' : str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ---------- render ----------
