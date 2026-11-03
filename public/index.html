@@ -18,20 +18,32 @@
     <div class="home-box">
       <h1>THE SYSTEM</h1>
       <p class="tagline">Every vote has a price.</p>
-      <input id="name-input" maxlength="20" placeholder="Your name" />
-      <button id="btn-create" class="primary">Create Room</button>
-      <div class="join-row">
-        <input id="code-input" maxlength="4" placeholder="CODE" />
-        <button id="btn-join">Join</button>
+      <input id="name-input" maxlength="20" placeholder="Your name" autocomplete="nickname" />
+
+      <!-- Arrived from a shared link (?room=ABCD): that's the obvious next step. -->
+      <div id="invite-card" class="invite-card hidden">
+        <p>You've been invited to room <span id="invite-code" class="code"></span></p>
+        <button id="btn-join-invite" class="primary">Join room <span id="invite-code-btn"></span></button>
+        <p class="choice-or">Or start something else</p>
+      </div>
+
+      <div class="choices">
+        <button id="btn-create" class="choice primary">
+          <b>Create a room</b><small>Invite friends with a link or QR</small>
+        </button>
+        <button id="btn-find-tables" class="choice">
+          <b>Find an open table <span id="open-tables-count" class="ot-count"></span></b><small>Play with whoever's around</small>
+          <span class="choice-arrow" aria-hidden="true">→</span>
+        </button>
+        <div class="choice choice-code">
+          <label for="code-input"><b>Have a code?</b></label>
+          <div class="join-row">
+            <input id="code-input" maxlength="4" placeholder="CODE" autocapitalize="characters" />
+            <button id="btn-join">Join</button>
+          </div>
+        </div>
       </div>
       <p id="home-error" class="error"></p>
-      <section id="open-tables" class="open-tables" aria-labelledby="open-tables-title">
-        <h3 id="open-tables-title">Open tables <span id="open-tables-count" class="ot-count"></span></h3>
-        <p class="ot-sub">No friends online? Join strangers here, or open your own table.</p>
-        <ul id="open-tables-list"></ul>
-        <p id="open-tables-empty" class="ot-empty">No open tables right now.</p>
-        <button id="btn-create-open">Start an open table</button>
-      </section>
       <button class="howto-btn" data-walkthrough>New here? <b>How to play</b> · 2 min</button>
       <a class="credit" href="https://www.shasnthegame.com/" target="_blank" rel="noopener">
         <span class="credit-stamp">Unofficial<br>fan game</span>
@@ -39,7 +51,20 @@
         <span class="credit-cta">Buy the original <span aria-hidden="true">↗</span></span>
       </a>
       <button class="howto-btn feedback-btn" data-info="feedback">💡 Got an idea? <b>Feedback & support</b></button>
-      <a class="source-link" href="https://github.com/sidharth18jam/the-system" target="_blank" rel="noopener">Source code on GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </div>
+
+  <!-- ============ OPEN TABLES ============ -->
+  <div id="screen-tables" class="screen hidden">
+    <div class="home-box tables-box">
+      <button id="btn-tables-back" class="link-btn back-btn">← Back</button>
+      <h2>Open tables</h2>
+      <p class="tagline">Lobbies waiting for players. Take any free seat.</p>
+      <p class="ot-you">Playing as <b id="tables-name"></b> · <button id="btn-tables-rename" class="link-btn">change</button></p>
+      <ul id="open-tables-list"></ul>
+      <p id="open-tables-empty" class="ot-empty">No open tables right now. Open one and others can find you here.</p>
+      <p id="tables-error" class="error"></p>
+      <button id="btn-create-open" class="primary">Open your own table</button>
     </div>
   </div>
 
@@ -53,9 +78,9 @@
       <ul id="lobby-players"></ul>
       <label id="open-row" class="open-row hidden">
         <input type="checkbox" id="open-check" />
-        <span><b>List as an open table</b><br /><small>Anyone on the home page can take a free seat</small></span>
+        <span><b>List as an open table</b><br /><small>Anyone browsing open tables can take a free seat</small></span>
       </label>
-      <p id="open-note" class="open-note hidden">Open table: strangers can join from the home page.</p>
+      <p id="open-note" class="open-note hidden">Open table: anyone browsing open tables can join.</p>
       <div id="mode-row" class="trade-partner-row hidden">
         <label for="mode-select">Mode <button class="info-btn" data-info="modes" aria-label="Explain game modes">i</button></label>
         <select id="mode-select">
@@ -73,7 +98,6 @@
         <span class="credit-cta">Buy the original <span aria-hidden="true">↗</span></span>
       </a>
       <button class="howto-btn feedback-btn" data-info="feedback">💡 Got an idea? <b>Feedback & support</b></button>
-      <a class="source-link" href="https://github.com/sidharth18jam/the-system" target="_blank" rel="noopener">Source code on GitHub <span aria-hidden="true">↗</span></a>
     </div>
   </div>
 

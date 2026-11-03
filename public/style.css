@@ -97,8 +97,8 @@ button.primary:hover { background: var(--ink-press); }
 .home-box input::placeholder { color: var(--muted); }
 /* Credit to the original game: one link, styled as a stamped ticket. */
 .credit {
-  display: flex; align-items: center; gap: 10px;
-  margin-top: 18px; padding: 8px 10px;
+  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 6px 12px;
+  margin-top: 18px; padding: 10px 12px;
   border: 1.5px solid var(--ink); border-radius: 2px;
   background: var(--paper2); color: var(--ink);
   text-decoration: none; text-align: left;
@@ -114,12 +114,13 @@ button.primary:hover { background: var(--ink-press); }
   font-family: var(--mono); font-weight: 700; font-size: 0.58rem;
   line-height: 1.15; letter-spacing: .5px; text-transform: uppercase; text-align: center;
   transform: rotate(-6deg);
+  grid-row: span 2;
 }
-.credit-text { flex: 1; min-width: 0; font-size: 0.8rem; line-height: 1.25; }
+.credit-text { min-width: 0; font-size: 0.85rem; line-height: 1.3; }
 .credit-text b { font-family: var(--display); font-weight: 400; letter-spacing: .5px; }
 .credit-text small { display: block; color: var(--muted); font-size: 0.68rem; }
 .credit-cta {
-  flex: none; padding: 5px 8px; border-radius: 2px;
+  justify-self: start; padding: 4px 8px; border-radius: 2px;
   background: var(--ink); color: var(--paper);
   font-size: 0.72rem; font-weight: 700; white-space: nowrap;
 }
@@ -142,21 +143,44 @@ button.primary:hover { background: var(--ink-press); }
 }
 #lobby-players li.disconnected { opacity: 0.4; }
 
-/* Open tables (home) and the host's "list as open" switch (lobby) */
-.open-tables { margin-top: 22px; padding-top: 16px; border-top: 2px dashed var(--line); text-align: left; }
-.open-tables h3 { font-family: var(--display); font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; }
-.ot-count { color: var(--red); }
-.ot-sub, .ot-empty { color: var(--muted); font-size: 0.8rem; margin: 4px 0 10px; }
-#open-tables-list { list-style: none; margin: 0 0 10px; max-height: 220px; overflow-y: auto; }
+/* Home: three choices (create / open tables / code), plus the invite card from a shared link */
+#screen-home, #screen-tables { display: flex; align-items: center; justify-content: center; }
+.choices { display: grid; gap: 10px; margin-top: 4px; }
+.choice {
+  position: relative; display: block; width: 100%; margin: 0; padding: 12px 14px;
+  text-align: left; border: 2px solid var(--ink); background: var(--paper2); color: var(--ink);
+}
+.choice b { display: block; font-size: 1rem; }
+.choice small { display: block; font-weight: 400; font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+.choice.primary { background: var(--ink); color: var(--paper); }
+.choice:not(.primary):not(.choice-code):hover { box-shadow: 3px 3px 0 var(--ink); transform: translate(-1px, -1px); }
+.choice.primary small { text-transform: none; letter-spacing: 0;  color: color-mix(in srgb, var(--paper) 75%, transparent); }
+.choice-arrow { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; }
+.choice-code { background: transparent; border-style: dashed; cursor: default; }
+.choice-code .join-row { margin-top: 6px; }
+.ot-count { margin-left: 6px; padding: 1px 6px; font-size: 0.72rem; font-family: var(--mono); background: var(--green); color: var(--paper); vertical-align: 2px; }
+.ot-count:empty { display: none; }
+.invite-card { margin: 4px 0 6px; padding: 12px 14px; border: 2px solid var(--yellow); background: color-mix(in srgb, var(--yellow) 18%, var(--paper)); }
+.invite-card p { margin: 0; font-size: 0.9rem; }
+.invite-card .primary { margin-top: 10px; }
+.choice-or { margin: 14px 0 0 !important; font-size: 0.75rem !important; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+/* Open tables screen */
+.tables-box { text-align: left; position: relative; }
+.tables-box h2, .tables-box .tagline { text-align: center; }
+.back-btn { padding: 4px 0; font-size: 0.85rem; margin-bottom: 8px; }
+.ot-you { font-size: 0.85rem; color: var(--muted); margin: -10px 0 14px; text-align: center; }
+.ot-you .link-btn { padding: 0; font-size: 0.85rem; text-decoration: underline; }
+.ot-empty { color: var(--muted); font-size: 0.85rem; margin: 4px 0 14px; text-align: center; }
+#open-tables-list { list-style: none; margin: 0 0 12px; max-height: 50vh; overflow-y: auto; }
 #open-tables-list li {
   display: flex; align-items: center; gap: 10px;
-  padding: 6px 6px 6px 12px; margin-bottom: 6px;
+  padding: 8px 8px 8px 12px; margin-bottom: 8px;
   background: var(--paper2); border-left: 4px solid var(--green);
 }
 .ot-host { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ot-seats { font-family: var(--mono); font-weight: 700; color: var(--muted); }
-#open-tables-list button { padding: 6px 14px; }
-#btn-create-open { width: 100%; }
+#open-tables-list button { padding: 6px 14px; margin: 0; }
 .open-row {
   display: flex; gap: 10px; align-items: flex-start; text-align: left; cursor: pointer;
   padding: 10px 12px; margin: 0 0 16px; border: 2px dashed var(--line); font-size: 0.9rem;

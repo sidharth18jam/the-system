@@ -112,12 +112,13 @@ function discountsLeft() {
 
 // ---------- screen helpers ----------
 function show(screen) {
-  ['screen-home', 'screen-lobby', 'screen-game'].forEach((s) =>
+  ['screen-home', 'screen-tables', 'screen-lobby', 'screen-game'].forEach((s) =>
     $(s).classList.toggle('hidden', s !== screen)
   );
   if (screen !== 'screen-game') $('coach').classList.add('hidden');
-  $('chat-fab').classList.toggle('hidden', screen === 'screen-home');
-  if (screen === 'screen-home') closeChat();
+  const outside = screen === 'screen-home' || screen === 'screen-tables';
+  $('chat-fab').classList.toggle('hidden', outside);
+  if (outside) closeChat();
 }
 function toast(msg) {
   const t = $('toast');
@@ -762,7 +763,12 @@ if (typeof window.addEventListener === 'function') window.addEventListener('resi
 // a typed code, or the open-tables list.
 let inviteCodeFromLink = null;
 $('btn-join').onclick = () => {
+  if (needName()) return;
   const code = $('code-input').value;
+  if (!code.trim()) {
+    $('home-error').textContent = 'Enter the 4-letter room code';
+    return $('code-input').focus();
+  }
   const via = inviteCodeFromLink && code.toUpperCase().trim() === inviteCodeFromLink ? 'invite' : 'code';
   socket.emit(
     'joinRoom',
@@ -833,6 +839,10 @@ if (typeof window.addEventListener === 'function') {
   if (inviteCode) {
     inviteCodeFromLink = inviteCode.toUpperCase().slice(0, 4);
     $('code-input').value = inviteCodeFromLink;
+    $('invite-code').textContent = inviteCodeFromLink;
+    $('invite-code-btn').textContent = inviteCodeFromLink;
+    $('invite-card').classList.remove('hidden');
+    $('btn-create').classList.remove('primary'); // the invite is the main action now
   }
   const savedName = store.get('system_name');
   if (savedName) $('name-input').value = savedName;
@@ -852,7 +862,9 @@ $('btn-invite').onclick = async () => {
 };
 
 // ---------- lobby ----------
+$('btn-join-invite').onclick = () => $('btn-join').onclick();
 $('btn-create').onclick = () => {
+  if (needName()) return;
   socket.emit('createRoom', { name: $('name-input').value }, (res) => {
     if (!res || !res.ok) return ($('home-error').textContent = (res && res.error) || 'Failed');
     saveSession(res.code, res.token);
@@ -866,13 +878,30 @@ $('btn-start').onclick = () => socket.emit('startGame', { mode: $('mode-select')
 const TABLES_POLL_MS = 5000;
 function needName() {
   if ($('name-input').value.trim()) return false;
+  show('screen-home');
   $('home-error').textContent = 'Enter your name first';
   $('name-input').focus();
   return true;
 }
+// The open-tables list is its own screen; the home page only shows how many there are.
+function openTablesScreen() {
+  if (needName()) return;
+  $('home-error').textContent = '';
+  $('tables-error').textContent = '';
+  $('tables-name').textContent = $('name-input').value.trim();
+  show('screen-tables');
+  refreshTables();
+}
+$('btn-find-tables').onclick = openTablesScreen;
+$('btn-tables-back').onclick = () => show('screen-home');
+$('btn-tables-rename').onclick = () => {
+  show('screen-home');
+  $('name-input').focus();
+  $('name-input').select && $('name-input').select();
+};
 function renderTables(tables) {
   const list = tables || [];
-  $('open-tables-count').textContent = list.length ? `(${list.length})` : '';
+  $('open-tables-count').textContent = list.length ? `${list.length} open` : '';
   $('open-tables-empty').classList.toggle('hidden', list.length > 0);
   $('open-tables-list').innerHTML = list
     .map(
@@ -885,7 +914,8 @@ function renderTables(tables) {
     .join('');
 }
 function refreshTables() {
-  if (myToken || !socket.connected || $('screen-home').classList.contains('hidden') || isHidden()) return;
+  const browsing = !$('screen-home').classList.contains('hidden') || !$('screen-tables').classList.contains('hidden');
+  if (myToken || !socket.connected || !browsing || isHidden()) return;
   socket.emit('listTables', {}, (res) => res && res.ok && renderTables(res.tables));
 }
 function pollTables() {
@@ -897,7 +927,7 @@ $('open-tables-list').onclick = (ev) => {
   if (!btn || needName()) return;
   socket.emit('joinRoom', { code: btn.dataset.joinTable, name: $('name-input').value, via: 'list' }, (res) => {
     if (!res || !res.ok) {
-      $('home-error').textContent = (res && res.error) || 'Could not join';
+      $('tables-error').textContent = (res && res.error) || 'Could not join';
       return refreshTables(); // the table may have just filled or started
     }
     saveSession(res.code, res.token);
@@ -906,7 +936,7 @@ $('open-tables-list').onclick = (ev) => {
 $('btn-create-open').onclick = () => {
   if (needName()) return;
   socket.emit('createRoom', { name: $('name-input').value, open: true }, (res) => {
-    if (!res || !res.ok) return ($('home-error').textContent = (res && res.error) || 'Failed');
+    if (!res || !res.ok) return ($('tables-error').textContent = (res && res.error) || 'Failed');
     saveSession(res.code, res.token);
   });
 };
