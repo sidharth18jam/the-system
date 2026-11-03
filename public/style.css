@@ -279,24 +279,29 @@ button.primary:hover { background: var(--ink-press); }
    clip-path clips pointer events too, so each shape is its own click target.
    Fills are washes, so the terrain reads through. */
 .zone { position: absolute; inset: 0; transition: background-color 0.25s; }
-.zone[data-zone='NW'], .zone[data-zone='Z6'] { background-color: rgba(176, 150, 96, 0.16); }
-.zone[data-zone='N'],  .zone[data-zone='Z1'] { background-color: rgba(130, 156, 104, 0.12); }
-.zone[data-zone='NE'], .zone[data-zone='Z2'] { background-color: rgba(190, 130, 96, 0.13); }
-.zone[data-zone='W'],  .zone[data-zone='Z5'] { background-color: rgba(150, 140, 110, 0.12); }
-.zone[data-zone='C'],  .zone[data-zone='Z7'] { background-color: rgba(214, 196, 150, 0.30); }
-.zone[data-zone='E'],  .zone[data-zone='Z3'] { background-color: rgba(120, 150, 150, 0.12); }
-.zone[data-zone='SW'], .zone[data-zone='Z4'] { background-color: rgba(140, 160, 100, 0.14); }
-.zone[data-zone='S']                          { background-color: rgba(196, 160, 110, 0.12); }
-.zone[data-zone='SE']                         { background-color: rgba(160, 120, 130, 0.12); }
+.zone[data-zone='NW'], .zone[data-zone='Z6'] { background-color: rgba(214, 190, 128, 0.42); }
+.zone[data-zone='N'],  .zone[data-zone='Z1'] { background-color: rgba(156, 182, 120, 0.40); }
+.zone[data-zone='NE'], .zone[data-zone='Z2'] { background-color: rgba(222, 160, 120, 0.38); }
+.zone[data-zone='W'],  .zone[data-zone='Z5'] { background-color: rgba(184, 170, 206, 0.38); }
+.zone[data-zone='C'],  .zone[data-zone='Z7'] { background-color: rgba(120, 110, 150, 0.30); }
+.zone[data-zone='E'],  .zone[data-zone='Z3'] { background-color: rgba(140, 186, 180, 0.40); }
+.zone[data-zone='SW'], .zone[data-zone='Z4'] { background-color: rgba(206, 206, 130, 0.40); }
+.zone[data-zone='S']                          { background-color: rgba(226, 184, 140, 0.38); }
+.zone[data-zone='SE']                         { background-color: rgba(200, 150, 170, 0.36); }
 
 /* Ink layer: sea, held-seat bands and borders. Above the fills, below labels/pegs. */
 .map-ink { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; overflow: visible; }
-.map-ink .msea { fill: #b9cfdb; }
+.map-ink .msea { fill: #9fbccd; }
+/* Depth rings: the coastline stroked wide and faint, clipped to the sea. */
+.map-ink .mdepth { fill: none; stroke: #e3eef3; stroke-linejoin: round; }
+.map-ink .mdepth.d1 { stroke-width: 1.4; opacity: 0.55; }
+.map-ink .mdepth.d2 { stroke-width: 3.2; opacity: 0.28; }
+.map-ink .mdepth.d3 { stroke-width: 5.6; opacity: 0.16; }
+.map-ink .mdepth.d4 { stroke-width: 9; opacity: 0.10; }
 .map-ink .msea-waves { fill: url(#mwaves); }
-.map-ink .mcoast-glow { fill: none; stroke: #8fb2c8; stroke-width: 1.6; opacity: 0.45; stroke-linejoin: round; }
-.map-ink .mcoast { fill: none; stroke: #3d5a74; stroke-width: 0.32; stroke-linejoin: round; }
+.map-ink .mcoast { fill: none; stroke: #2f4a63; stroke-width: 0.45; stroke-linejoin: round; }
 .map-ink .mborder-casing { fill: none; stroke: #f4eedc; stroke-width: 1.15; opacity: 0.75; stroke-linejoin: round; stroke-linecap: round; }
-.map-ink .mborder { fill: none; stroke: var(--ink); stroke-width: 0.42; stroke-linejoin: round; stroke-linecap: round; }
+.map-ink .mborder { fill: none; stroke: var(--ink); stroke-width: 0.55; stroke-linejoin: round; stroke-linecap: round; }
 /* A held seat gets a broad inner band in the holder's colour, like a marked-up map. */
 .map-ink .mband { fill: none; stroke-width: 2.6; opacity: 0.55; stroke-linejoin: round; }
 .map-ink .band-green  { stroke: var(--green); }
@@ -305,13 +310,13 @@ button.primary:hover { background: var(--ink-press); }
 .map-ink .band-yellow { stroke: var(--yellow); }
 .map-ink .band-purple { stroke: var(--purple); }
 
-.zgroup[data-zone='Z1'] .zbody { left: 50%; top: 2%;  transform: translateX(-50%); text-align: center; }
-.zgroup[data-zone='Z2'] .zbody { right: 2%; top: 3%;  text-align: right; }
-.zgroup[data-zone='Z3'] .zbody { right: 2%; top: 84%; text-align: right; }
-.zgroup[data-zone='Z4'] .zbody { left: 50%; top: 88%; transform: translateX(-50%); text-align: center; }
-.zgroup[data-zone='Z5'] .zbody { left: 2%;  top: 84%; }
-.zgroup[data-zone='Z6'] .zbody { left: 2%;  top: 3%;  }
-.zgroup[data-zone='Z7'] .zbody { left: 50%; top: 42%; transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='Z1'] .zbody { left: 50%; top: 7%;  transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='Z2'] .zbody { right: 9%; top: 9%;  text-align: right; }
+.zgroup[data-zone='Z3'] .zbody { right: 9%; top: 79%; text-align: right; }
+.zgroup[data-zone='Z4'] .zbody { left: 50%; top: 84%; transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='Z5'] .zbody { left: 9%;  top: 79%; }
+.zgroup[data-zone='Z6'] .zbody { left: 9%;  top: 9%;  }
+.zgroup[data-zone='Z7'] .zbody { left: 50%; top: 43%; transform: translateX(-50%); text-align: center; }
 
 /* Election-night wash: the majority holder tints the whole territory.
    Each owned-* class only declares its ideology color (--zc); the actual
@@ -348,15 +353,15 @@ button.primary:hover { background: var(--ink-press); }
   padding: 2px 6px; border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(42, 36, 86, 0.12);
 }
-.zgroup[data-zone='NW'] .zbody { left: 2%;  top: 3%;  }
-.zgroup[data-zone='N']  .zbody { left: 50%; top: 3%;  transform: translateX(-50%); text-align: center; }
-.zgroup[data-zone='NE'] .zbody { right: 2%; top: 3%;  text-align: right; }
-.zgroup[data-zone='W']  .zbody { left: 2%;  top: 34%; }
-.zgroup[data-zone='C']  .zbody { left: 50%; top: 34%; transform: translateX(-50%); text-align: center; }
-.zgroup[data-zone='E']  .zbody { right: 2%; top: 34%; text-align: right; }
-.zgroup[data-zone='SW'] .zbody { left: 2%;  bottom: 3%; }
-.zgroup[data-zone='S']  .zbody { left: 50%; bottom: 3%; transform: translateX(-50%); text-align: center; }
-.zgroup[data-zone='SE'] .zbody { right: 2%; bottom: 3%; text-align: right; }
+.zgroup[data-zone='NW'] .zbody { left: 10%; top: 11%;  }
+.zgroup[data-zone='N']  .zbody { left: 50%; top: 11%;  transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='NE'] .zbody { right: 10%; top: 11%;  text-align: right; }
+.zgroup[data-zone='W']  .zbody { left: 7%;  top: 36%; }
+.zgroup[data-zone='C']  .zbody { left: 50%; top: 35.5%; transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='E']  .zbody { right: 7%; top: 36%; text-align: right; }
+.zgroup[data-zone='SW'] .zbody { left: 10%; bottom: 11%; }
+.zgroup[data-zone='S']  .zbody { left: 50%; bottom: 11%; transform: translateX(-50%); text-align: center; }
+.zgroup[data-zone='SE'] .zbody { right: 10%; bottom: 11%; text-align: right; }
 
 .zgroup .zname {
   font-weight: 800; font-size: 0.7rem;

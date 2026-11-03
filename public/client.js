@@ -1576,7 +1576,7 @@ function hash2(str) {
 // topology — which districts touch — and must stay in step with the engine's
 // adjacency. What players see (and click) is the surveyed version built from them
 // below: every edge is redrawn as a deterministic, irregular border.
-const ZONE_SKELETON = {
+const SKELETON_SRC = {
   NW: [[0, 0], [25, 6], [31, 50], [0, 33]],
   N:  [[25, 6], [75, 6], [69, 50], [50, 31], [31, 50]],
   NE: [[100, 0], [75, 6], [69, 50], [100, 33]],
@@ -1596,37 +1596,61 @@ const ZONE_SKELETON = {
   Z7: [[35, 30], [65, 30], [80, 50], [65, 70], [35, 70], [20, 50]],
 };
 
+// The country is an ISLAND: the skeleton is drawn in a 0–100 design space, then
+// pulled in off the frame so open sea surrounds every district.
+const ISLAND = (v) => 5 + v * 0.9;
+// Frame corners are pulled in further, so the coast rounds off instead of squaring.
+const toIsland = ([x, y]) => {
+  const corner = (x === 0 || x === 100) && (y === 0 || y === 100);
+  return corner ? [x ? 90 : 10, y ? 90 : 10] : [ISLAND(x), ISLAND(y)];
+};
+const ZONE_SKELETON = {};
+for (const id of Object.keys(SKELETON_SRC)) ZONE_SKELETON[id] = SKELETON_SRC[id].map(toIsland);
+
 // ---- Surveyed borders ---------------------------------------------------------
-// Each skeleton edge becomes a wandering border by recursive midpoint displacement
+// Each skeleton edge becomes a wandering line by recursive midpoint displacement
 // (deterministic: hashed from the edge's endpoints, so every client draws the same
 // map). A shared edge is generated ONCE in a canonical direction and reversed for the
-// neighbour, so the two districts meet seamlessly with no gaps or overlaps. Edges
-// lying on the sheet's frame stay straight.
-const EDGE_DEPTH = 5; // 2^5 = 32 segments per edge
-function onFrame(a, b) {
-  return (a[0] === b[0] && (a[0] === 0 || a[0] === 100)) || (a[1] === b[1] && (a[1] === 0 || a[1] === 100));
+// neighbour, so the two districts meet seamlessly with no gaps or overlaps. Edges that
+// touch no other district are coastline: subdivided finer and rougher.
+const edgeKey = (a, b) => {
+  const ka = a.join(','), kb = b.join(',');
+  return ka < kb ? ka + '|' + kb : kb + '|' + ka;
+};
+// Coast = an edge only one district on its board uses (the 2 Player wards are "Z*").
+const COAST = new Set();
+for (const board of [(id) => id[0] === 'Z', (id) => id[0] !== 'Z']) {
+  const count = new Map();
+  for (const id of Object.keys(ZONE_SKELETON).filter(board)) {
+    const sk = ZONE_SKELETON[id];
+    sk.forEach((a, i) => {
+      const k = edgeKey(a, sk[(i + 1) % sk.length]);
+      count.set(k, (count.get(k) || 0) + 1);
+    });
+  }
+  for (const [k, n] of count) if (n === 1) COAST.add(k);
 }
 const edgeCache = new Map();
 function roughEdge(a, b) {
-  const ka = a.join(','), kb = b.join(',');
-  const flip = ka > kb;
-  const key = flip ? kb + '|' + ka : ka + '|' + kb;
+  const key = edgeKey(a, b);
+  const flip = a.join(',') > b.join(',');
   if (!edgeCache.has(key)) {
+    const coast = COAST.has(key);
     const p0 = flip ? b : a, p1 = flip ? a : b;
     let pts = [p0, p1];
-    if (!onFrame(p0, p1)) {
-      for (let lvl = 0; lvl < EDGE_DEPTH; lvl++) {
-        const next = [pts[0]];
-        for (let i = 0; i < pts.length - 1; i++) {
-          const p = pts[i], q = pts[i + 1];
-          const dx = q[0] - p[0], dy = q[1] - p[1];
-          const len = Math.hypot(dx, dy) || 1;
-          const u = (hash2(key + ':' + lvl + ':' + i) / 4294967295) * 2 - 1;
-          const amp = len * (lvl === 0 ? 0.09 : 0.15) * u;
-          next.push([(p[0] + q[0]) / 2 - (dy / len) * amp, (p[1] + q[1]) / 2 + (dx / len) * amp], q);
-        }
-        pts = next;
+    const depth = coast ? 7 : 5;
+    for (let lvl = 0; lvl < depth; lvl++) {
+      const next = [pts[0]];
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p = pts[i], q = pts[i + 1];
+        const dx = q[0] - p[0], dy = q[1] - p[1];
+        const len = Math.hypot(dx, dy) || 1;
+        const u = (hash2(key + ':' + lvl + ':' + i) / 4294967295) * 2 - 1;
+        const k = coast ? (lvl === 0 ? 0.05 : lvl < 3 ? 0.12 : 0.24) : lvl === 0 ? 0.09 : 0.15;
+        const amp = len * k * u;
+        next.push([(p[0] + q[0]) / 2 - (dy / len) * amp, (p[1] + q[1]) / 2 + (dx / len) * amp], q);
       }
+      pts = next;
     }
     edgeCache.set(key, pts);
   }
@@ -1662,9 +1686,7 @@ function mapBorders(ids) {
     if (!sk) continue;
     sk.forEach((a, i) => {
       const b = sk[(i + 1) % sk.length];
-      if (onFrame(a, b)) return;
-      const ka = a.join(','), kb = b.join(',');
-      const k = ka < kb ? ka + '|' + kb : kb + '|' + ka;
+      const k = edgeKey(a, b);
       const e = edges.get(k) || { a, b, count: 0 };
       e.count++;
       edges.set(k, e);
@@ -1700,9 +1722,15 @@ function mapSvg(zones) {
     .join('');
   return `<svg class="map-ink" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
     <defs><pattern id="mwaves" width="6" height="3" patternUnits="userSpaceOnUse"><path d="M0,1.5 q1.5,-1 3,0 t3,0" fill="none" stroke="#5f86a8" stroke-width="0.18" opacity="0.55"/></pattern></defs>
-    ${sea ? `<path class="msea" fill-rule="evenodd" d="${sea}"/><path class="msea-waves" fill-rule="evenodd" d="${sea}"/>` : ''}
+    ${sea ? `<clipPath id="mseaclip"><path clip-rule="evenodd" d="${sea}"/></clipPath>
+      <path class="msea" fill-rule="evenodd" d="${sea}"/>
+      <g clip-path="url(#mseaclip)">
+        <path class="mdepth d4" d="${coast}"/><path class="mdepth d3" d="${coast}"/>
+        <path class="mdepth d2" d="${coast}"/><path class="mdepth d1" d="${coast}"/>
+        <path class="msea-waves" fill-rule="evenodd" d="${sea}"/>
+      </g>` : ''}
     ${bands}
-    ${coast ? `<path class="mcoast-glow" d="${coast}"/><path class="mcoast" d="${coast}"/>` : ''}
+    ${coast ? `<path class="mcoast" d="${coast}"/>` : ''}
     <path class="mborder-casing" d="${inner}"/>
     <path class="mborder" d="${inner}"/>
   </svg>`;
@@ -1718,6 +1746,7 @@ const LABEL_BOX = {
   Z4: [35, 88, 65, 99], Z5: [0, 84, 28, 99], Z6: [0, 1, 28, 16],
   Z7: [37, 42, 63, 57],
 };
+for (const id of Object.keys(LABEL_BOX)) LABEL_BOX[id] = LABEL_BOX[id].map(ISLAND);
 const PEG_MARGIN = 2.4; // board-% clearance a peg centre keeps from any border
 
 function pointInPoly(poly, x, y) {
