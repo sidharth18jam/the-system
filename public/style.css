@@ -142,6 +142,29 @@ button.primary:hover { background: var(--ink-press); }
 }
 #lobby-players li.disconnected { opacity: 0.4; }
 
+/* Open tables (home) and the host's "list as open" switch (lobby) */
+.open-tables { margin-top: 22px; padding-top: 16px; border-top: 2px dashed var(--line); text-align: left; }
+.open-tables h3 { font-family: var(--display); font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; }
+.ot-count { color: var(--red); }
+.ot-sub, .ot-empty { color: var(--muted); font-size: 0.8rem; margin: 4px 0 10px; }
+#open-tables-list { list-style: none; margin: 0 0 10px; max-height: 220px; overflow-y: auto; }
+#open-tables-list li {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 6px 6px 12px; margin-bottom: 6px;
+  background: var(--paper2); border-left: 4px solid var(--green);
+}
+.ot-host { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ot-seats { font-family: var(--mono); font-weight: 700; color: var(--muted); }
+#open-tables-list button { padding: 6px 14px; }
+#btn-create-open { width: 100%; }
+.open-row {
+  display: flex; gap: 10px; align-items: flex-start; text-align: left; cursor: pointer;
+  padding: 10px 12px; margin: 0 0 16px; border: 2px dashed var(--line); font-size: 0.9rem;
+}
+.home-box .open-row input { margin: 3px 0 0; padding: 0; width: 18px; height: 18px; accent-color: var(--ink); flex: none; }
+.open-row small { color: var(--muted); }
+.open-note { color: var(--green); font-weight: 600; font-size: 0.85rem; margin: 0 0 16px; }
+
 /* ---------- Game layout ---------- */
 #phase-banner {
   text-align: center; padding: 12px 10px;

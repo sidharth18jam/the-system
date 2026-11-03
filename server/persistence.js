@@ -23,7 +23,7 @@ const SAVE_MAX_WAIT_MS = Number(process.env.SAVE_MAX_WAIT_MS) || 2000;
 let saveTimer = null;
 let pendingSince = 0;
 let lastRooms = null;
-let lastGetPidCounter = null;
+let lastGetMeta = null;
 const roomJson = new Map(); // code -> cached JSON of that room's snapshot
 
 function serializeRoom(room) {
@@ -34,6 +34,8 @@ function serializeRoom(room) {
     game: room.game ? room.game.snapshot() : null,
     chat: room.chat || [],
     chatSeq: room.chatSeq || 0,
+    open: !!room.open,
+    reached2: !!room.reached2,
   });
 }
 
@@ -64,20 +66,22 @@ function saveNow() {
         room.dirty = false;
       }
     }
-    const text = `{"pidCounter":${Number(lastGetPidCounter()) || 0},"rooms":[${[...roomJson.values()].join(',')}]}`;
+    const meta = lastGetMeta() || {};
+    const text = `{"pidCounter":${Number(meta.pidCounter) || 0},"stats":${JSON.stringify(meta.stats || null)},"rooms":[${[...roomJson.values()].join(',')}]}`;
     writeAtomic(STATE_FILE, text);
   } catch (e) {
     console.error('persistence: save failed:', e.message);
   }
 }
 
-// Record a change and schedule a save. Pass the room that changed; with no room (e.g. after
-// rooms were deleted) every room is treated as changed.
-function scheduleSave(rooms, getPidCounter, room = null) {
+// Record a change and schedule a save. getMeta() returns { pidCounter, stats }. Pass the room
+// that changed; `false` when no room changed (e.g. only a stats counter moved); nothing at all
+// (e.g. after rooms were deleted) to treat every room as changed.
+function scheduleSave(rooms, getMeta, room) {
   lastRooms = rooms;
-  lastGetPidCounter = getPidCounter;
+  lastGetMeta = getMeta;
   if (room) room.dirty = true;
-  else for (const r of rooms.values()) r.dirty = true;
+  else if (room !== false) for (const r of rooms.values()) r.dirty = true;
   const now = Date.now();
   if (!pendingSince) pendingSince = now;
   clearTimeout(saveTimer);
@@ -90,7 +94,7 @@ function flushSave() {
   if (saveTimer) saveNow();
 }
 
-// Rebuild the rooms map from disk. Returns { rooms, pidCounter } or null if no/invalid file.
+// Rebuild the rooms map from disk. Returns { rooms, pidCounter, stats } or null if no/invalid file.
 function loadState() {
   let raw;
   try {
@@ -114,10 +118,12 @@ function loadState() {
         game: r.game ? SystemGame.restore(r.game) : null,
         chat: r.chat || [],
         chatSeq: r.chatSeq || 0,
+        open: !!r.open,
+        reached2: !!r.reached2,
       });
     }
     console.log(`persistence: restored ${rooms.size} room(s) from ${STATE_FILE}`);
-    return { rooms, pidCounter: data.pidCounter || 0 };
+    return { rooms, pidCounter: data.pidCounter || 0, stats: data.stats || null };
   } catch (e) {
     // Keep the unreadable file for inspection rather than overwriting it on the next save.
     const aside = `${STATE_FILE}.corrupt-${Date.now()}`;

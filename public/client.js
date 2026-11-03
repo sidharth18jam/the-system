@@ -758,10 +758,15 @@ $('chat-form').onsubmit = (ev) => {
 if (typeof window.addEventListener === 'function') window.addEventListener('resize', placeChatFab);
 
 // ---------- home ----------
+// Where a join came from, for the anonymous funnel counters: the invite link's prefilled code,
+// a typed code, or the open-tables list.
+let inviteCodeFromLink = null;
 $('btn-join').onclick = () => {
+  const code = $('code-input').value;
+  const via = inviteCodeFromLink && code.toUpperCase().trim() === inviteCodeFromLink ? 'invite' : 'code';
   socket.emit(
     'joinRoom',
-    { code: $('code-input').value, name: $('name-input').value },
+    { code, name: $('name-input').value, via },
     (res) => {
       if (!res || !res.ok) return ($('home-error').textContent = (res && res.error) || 'Failed');
       saveSession(res.code, res.token);
@@ -780,6 +785,7 @@ function saveSession(code, token) {
 // Attempt reconnect on load
 socket.on('connect', () => {
   $('conn-status').classList.add('hidden');
+  refreshTables();
   if (myToken && myRoomCode) {
     socket.emit('joinRoom', { code: myRoomCode, token: myToken }, (res) => {
       if (!res || !res.ok) {
@@ -824,7 +830,10 @@ if (typeof window.addEventListener === 'function') {
 // Invite links (?room=ABCD) prefill the join code; the last-used name is remembered.
 {
   const inviteCode = new URLSearchParams(location.search).get('room');
-  if (inviteCode) $('code-input').value = inviteCode.toUpperCase().slice(0, 4);
+  if (inviteCode) {
+    inviteCodeFromLink = inviteCode.toUpperCase().slice(0, 4);
+    $('code-input').value = inviteCodeFromLink;
+  }
   const savedName = store.get('system_name');
   if (savedName) $('name-input').value = savedName;
 }
@@ -850,6 +859,59 @@ $('btn-create').onclick = () => {
   });
 };
 $('btn-start').onclick = () => socket.emit('startGame', { mode: $('mode-select').value });
+
+// ---------- open tables ----------
+// Lobbies whose host listed them as open. Polled while the home screen is showing, so a lone
+// visitor can find a game without a friend's code.
+const TABLES_POLL_MS = 5000;
+function needName() {
+  if ($('name-input').value.trim()) return false;
+  $('home-error').textContent = 'Enter your name first';
+  $('name-input').focus();
+  return true;
+}
+function renderTables(tables) {
+  const list = tables || [];
+  $('open-tables-count').textContent = list.length ? `(${list.length})` : '';
+  $('open-tables-empty').classList.toggle('hidden', list.length > 0);
+  $('open-tables-list').innerHTML = list
+    .map(
+      (t) => `<li>
+        <span class="ot-host">${esc(t.host)}'s table</span>
+        <span class="ot-seats" aria-label="${t.players} of ${t.max} seats taken">${t.players}/${t.max}</span>
+        <button data-join-table="${esc(t.code)}">Join</button>
+      </li>`
+    )
+    .join('');
+}
+function refreshTables() {
+  if (myToken || !socket.connected || $('screen-home').classList.contains('hidden') || isHidden()) return;
+  socket.emit('listTables', {}, (res) => res && res.ok && renderTables(res.tables));
+}
+function pollTables() {
+  refreshTables();
+  setTimeout(pollTables, TABLES_POLL_MS);
+}
+$('open-tables-list').onclick = (ev) => {
+  const btn = ev.target && ev.target.closest && ev.target.closest('[data-join-table]');
+  if (!btn || needName()) return;
+  socket.emit('joinRoom', { code: btn.dataset.joinTable, name: $('name-input').value, via: 'list' }, (res) => {
+    if (!res || !res.ok) {
+      $('home-error').textContent = (res && res.error) || 'Could not join';
+      return refreshTables(); // the table may have just filled or started
+    }
+    saveSession(res.code, res.token);
+  });
+};
+$('btn-create-open').onclick = () => {
+  if (needName()) return;
+  socket.emit('createRoom', { name: $('name-input').value, open: true }, (res) => {
+    if (!res || !res.ok) return ($('home-error').textContent = (res && res.error) || 'Failed');
+    saveSession(res.code, res.token);
+  });
+};
+$('open-check').onchange = () => socket.emit('setOpen', { open: !!$('open-check').checked });
+pollTables();
 
 socket.on('lobbyState', (lobby) => {
   myPid = lobby.you;
@@ -883,6 +945,9 @@ socket.on('lobbyState', (lobby) => {
     sel.disabled = false;
   }
   $('lobby-wait').classList.toggle('hidden', myIsHost);
+  $('open-row').classList.toggle('hidden', !myIsHost);
+  $('open-check').checked = !!lobby.open;
+  $('open-note').classList.toggle('hidden', myIsHost || !lobby.open);
   setChatRoster(lobby.players);
 });
 
