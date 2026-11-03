@@ -311,6 +311,8 @@ const HELP = {
           <span aria-hidden="true">🐞</span><span><b>Report a bug</b><small>Something broke or behaved oddly</small></span></a>
         <a class="feedback-link coffee" href="https://buymeacoffee.com/sid.g" target="_blank" rel="noopener">
           <span aria-hidden="true">☕</span><span><b>Buy me a coffee</b><small>Pays for hosting and development</small></span></a>
+        <a class="feedback-link" href="https://github.com/sidharth18jam/the-system" target="_blank" rel="noopener">
+          <span aria-hidden="true">⌨️</span><span><b>Read the source</b><small>The full code is on GitHub</small></span></a>
       </div>
       <p class="info-flavour">Takes a minute. No sign-in needed. I read every reply.</p>`,
   },
