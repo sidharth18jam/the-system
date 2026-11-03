@@ -1577,19 +1577,19 @@ function hash2(str) {
 // adjacency. What players see (and click) is the surveyed version built from them
 // below: every edge is redrawn as a deterministic, irregular border.
 const SKELETON_SRC = {
-  // 9-zone board. The graph is a ring (NW–N–NE–E–SE–S–SW–W) with Center bridging
-  // ONLY North and South. Two lakes (not districts: no voters, no adjacency) sit
-  // either side of Center, so Center, West and East never touch, and North/South
-  // never touch West/East. No borders meet at a bare point.
-  NW: [[0, 0], [33, 0], [30, 20], [32, 31], [24, 34], [0, 34]],
-  N:  [[33, 0], [67, 0], [70, 20], [68, 31], [62, 40], [38, 40], [32, 31], [30, 20]],
-  NE: [[67, 0], [100, 0], [100, 34], [76, 34], [68, 31], [70, 20]],
-  W:  [[0, 34], [24, 34], [24, 66], [0, 66]],
-  C:  [[38, 40], [62, 40], [62, 60], [38, 60]],
-  E:  [[100, 34], [100, 66], [76, 66], [76, 34]],
-  SW: [[0, 66], [24, 66], [32, 69], [30, 80], [33, 100], [0, 100]],
-  S:  [[38, 60], [62, 60], [68, 69], [70, 80], [67, 100], [33, 100], [30, 80], [32, 69]],
-  SE: [[100, 66], [100, 100], [67, 100], [70, 80], [68, 69], [76, 66]],
+  // 9-zone board. North-West and North-East meet over North's head; South-West
+  // and South-East meet under South's feet. Center bridges ONLY North and South:
+  // two lakes (not districts: no voters, no adjacency) keep it from West and East.
+  // Borders are deliberately lopsided so districts interlock rather than tile.
+  NW: [[0, 0], [58, 0], [53, 9], [50, 17], [40, 18], [30, 20], [26, 28], [34, 36], [24, 40], [16, 38], [10, 30], [0, 28]],
+  N:  [[50, 17], [62, 19], [68, 28], [66, 36], [60, 42], [50, 40], [40, 42], [34, 36], [26, 28], [30, 20], [40, 18]],
+  NE: [[58, 0], [100, 0], [100, 36], [89, 38], [77, 40], [66, 36], [68, 28], [62, 19], [50, 17], [53, 9]],
+  W:  [[0, 28], [10, 30], [16, 38], [24, 40], [24, 62], [14, 66], [0, 70]],
+  C:  [[40, 42], [50, 40], [60, 42], [60, 58], [50, 61], [40, 58]],
+  E:  [[100, 36], [100, 64], [86, 68], [77, 60], [77, 40], [89, 38]],
+  SW: [[0, 70], [14, 66], [24, 62], [34, 64], [36, 72], [38, 80], [50, 83], [46, 91], [42, 100], [0, 100]],
+  S:  [[40, 58], [50, 61], [60, 58], [66, 64], [74, 72], [70, 82], [60, 82], [50, 83], [38, 80], [36, 72], [34, 64]],
+  SE: [[100, 64], [100, 100], [42, 100], [46, 91], [50, 83], [60, 82], [70, 82], [74, 72], [66, 64], [77, 60], [86, 68]],
   // 2 Player board (DD-26): six wards ringing the central hexagon.
   Z1: [[25, 0], [75, 0], [65, 30], [35, 30]],
   Z2: [[75, 0], [100, 0], [100, 50], [80, 50], [65, 30]],
@@ -1762,9 +1762,9 @@ function mapSvg(zones) {
 // Rectangles (board %, [x0,y0,x1,y1]) the label plates occupy — pegs steer clear
 // so text never sits on top of a voter (roomy enough to also clear a capture stamp).
 const LABEL_BOX = {
-  NW: [0, 0, 30, 16], N: [36, 0, 64, 12], NE: [70, 0, 100, 16],
-  W:  [0, 34, 24, 45], C: [38, 40, 62, 50], E: [76, 34, 100, 45],
-  SW: [0, 86, 30, 100], S: [36, 88, 64, 100], SE: [70, 86, 100, 100],
+  NW: [0, 0, 30, 16], N: [38, 17, 62, 28], NE: [70, 0, 100, 16],
+  W:  [0, 28, 22, 40], C: [40, 41, 60, 51], E: [78, 33, 100, 46],
+  SW: [0, 86, 30, 100], S: [38, 68, 62, 79], SE: [70, 86, 100, 100],
   Z1: [35, 1, 65, 12], Z2: [72, 1, 100, 16], Z3: [72, 84, 100, 99],
   Z4: [35, 88, 65, 99], Z5: [0, 84, 28, 99], Z6: [0, 1, 28, 16],
   Z7: [37, 42, 63, 57],
